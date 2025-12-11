@@ -81,7 +81,25 @@ local function hasRequiredTool()
     elseif Config.Inventory == "qs-inventory" then
         if FrameworkName == 'QBox' then
             -- QBox: Verwende Client Module
-            local QBX = require '@qbx_core/modules/playerdata'
+            // ✅ MIT ERROR HANDLING:
+if FrameworkName == 'QBox' then
+    local success, QBX = pcall(require, '@qbx_core/modules/playerdata')
+    if not success then
+        print('[WheatFarm] ERROR: QBox PlayerData Module konnte nicht geladen werden!')
+        return false
+    end
+    
+    local PlayerData = QBX.PlayerData
+    if not PlayerData or not PlayerData.items then
+        return false
+    end
+    
+    for _, item in pairs(PlayerData.items) do
+        if item and item.name == Config.RequiredTool.item then
+            return true
+        end
+    end
+end
             local PlayerData = QBX.PlayerData
             if not PlayerData or not PlayerData.items then
                 return false
