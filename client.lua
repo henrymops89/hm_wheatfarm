@@ -35,25 +35,46 @@ CreateThread(function()
     EndTextCommandSetBlipName(blip)
 end)
 
+-- Hilfsfunktion: Prüfe ob Spieler das Werkzeug besitzt
+local function hasRequiredTool()
+    if not Config.RequiredTool.enabled then
+        return true
+    end
+    
+    if Config.Inventory == "ox_inventory" then
+        local count = exports.ox_inventory:Search('count', Config.RequiredTool.item)
+        return count and count > 0
+    elseif Config.Inventory == "qs-inventory" then
+        -- qs-inventory: Client-seitige Prüfung über QBCore
+        local QBCore = exports['qbx_core']:GetCoreObject()
+        if not QBCore then
+            print('[WheatFarm] ERROR: QBCore nicht gefunden!')
+            return false
+        end
+        
+        local PlayerData = QBCore.Functions.GetPlayerData()
+        if not PlayerData or not PlayerData.items then
+            return false
+        end
+        
+        for _, item in pairs(PlayerData.items) do
+            if item and item.name == Config.RequiredTool.item then
+                return true
+            end
+        end
+    end
+    
+    return false
+end
+
 -- Weizen pflügen
 local function plowWheat(isAutoFarm)
     if isPlowing then return end
     
     -- Client-seitige Werkzeug-Prüfung
-    if Config.RequiredTool.enabled then
-        -- Prüfe ob Spieler das Item hat
-        local hasItem = false
-        
-        if Config.Inventory == "ox_inventory" then
-            hasItem = exports.ox_inventory:Search('count', Config.RequiredTool.item) > 0
-        elseif Config.Inventory == "qs-inventory" then
-            hasItem = exports['qs-inventory']:HasItem(source, Config.RequiredTool.item, 1)
-        end
-        
-        if not hasItem then
-            exports.qbx_core:Notify(Lang:t('notify_no_tool'), 'error')
-            return
-        end
+    if not hasRequiredTool() then
+        exports.qbx_core:Notify(Lang:t('notify_no_tool'), 'error')
+        return
     end
     
     isPlowing = true

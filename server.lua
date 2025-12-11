@@ -57,19 +57,37 @@ local function HasTool(source)
     end
     
     if Config.Inventory == "ox_inventory" then
-        local item = exports.ox_inventory:Search(source, 'count', Config.RequiredTool.item)
-        if item and item > 0 then
+        -- ox_inventory: Prüfe ob Item existiert und finde den Slot
+        local count = exports.ox_inventory:Search(source, 'count', Config.RequiredTool.item)
+        if count and count > 0 then
             -- Finde Slot des Items
             local inventory = exports.ox_inventory:GetInventory(source)
-            for slot, itemData in pairs(inventory.items) do
-                if itemData.name == Config.RequiredTool.item then
-                    return true, slot
+            if inventory and inventory.items then
+                for slot, itemData in pairs(inventory.items) do
+                    if itemData and itemData.name == Config.RequiredTool.item then
+                        return true, slot
+                    end
                 end
             end
         end
     elseif Config.Inventory == "qs-inventory" then
-        -- qs-inventory hat kein Haltbarkeitssystem, nur Item-Check
-        return exports['qs-inventory']:HasItem(source, Config.RequiredTool.item, 1), nil
+        -- qs-inventory: Prüfe ob Item existiert
+        local QBCore = exports['qbx_core']:GetCoreObject()
+        if not QBCore then
+            print('[WheatFarm] ERROR: QBCore nicht gefunden!')
+            return false, nil
+        end
+        
+        local Player = QBCore.Functions.GetPlayer(source)
+        if not Player then
+            return false, nil
+        end
+        
+        -- Prüfe ob Spieler das Item hat
+        local item = Player.Functions.GetItemByName(Config.RequiredTool.item)
+        if item and item.amount and item.amount > 0 then
+            return true, nil  -- qs-inventory hat kein Slot-System wie ox_inventory
+        end
     end
     
     return false, nil
@@ -79,7 +97,7 @@ end
 RegisterNetEvent('wheat:plow', function(isAutoFarm)
     local source = source
     
-    -- Prüfe ob Spieler Werkzeug hat
+    -- Prüfe ob Spieler Werkzeug hat (SERVER-SEITIG!)
     local hasTool, toolSlot = HasTool(source)
     
     if not hasTool then
