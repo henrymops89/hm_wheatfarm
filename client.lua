@@ -104,9 +104,15 @@ local function hasRequiredTool()
                 end
             end
         elseif FrameworkName == 'ESX' then
-            ESX.TriggerServerCallback('wheat:hasItem', function(hasItem)
-                return hasItem
-            end, Config.RequiredTool.item)
+elseif FrameworkName == 'ESX' then
+    -- ESX Callbacks sind asynchron, daher hier schwierig
+    -- Besser: Server-seitige Prüfung reicht aus
+    -- Oder: Synchronen Check via ox_inventory machen
+    if Config.Inventory == "ox_inventory" then
+        local count = exports.ox_inventory:Search('count', Config.RequiredTool.item)
+        return count and count > 0
+    end
+    return false  -- Fallback
         end
     end
     
