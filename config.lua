@@ -4,6 +4,10 @@
 
 Config = {}
 
+-- Framework: "auto", "QBox", "QBCore", "ESX"
+-- "auto" = Automatische Erkennung (empfohlen)
+Config.Framework = "auto"
+
 -- Sprache: "de", "en", "fr", "es", "pl", "tr"
 Config.Language = "de"
 

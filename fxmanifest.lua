@@ -2,9 +2,9 @@ fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-author 'Dein Name'
-description 'Einfaches Weizenfeld System für QBox'
-version '1.0.0'
+author 'Your Name'
+description 'Multi-Framework Wheat Farm System (QBox Native, QBCore, ESX)'
+version '2.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
@@ -24,8 +24,10 @@ server_scripts {
     'server.lua'
 }
 
+-- Dependencies (at least one framework required)
 dependencies {
-    'qbx_core',
-    'ox_inventory',
-    'ox_lib'
+    'ox_lib',
 }
+
+-- Optional dependencies (only needed if using specific inventory)
+-- ox_inventory or qs-inventory

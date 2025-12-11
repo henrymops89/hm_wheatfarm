@@ -1,9 +1,38 @@
 -- =====================================================
--- CLIENT.LUA
+-- CLIENT.LUA - MULTI-FRAMEWORK (QBox Native, QBCore, ESX)
 -- =====================================================
 
--- QBCore mit nur benötigten Funktionen laden (ab Version 1.3.0)
-local QBCore = exports['qbx_core']:GetCoreObject({'Functions'})
+local Framework = nil
+local FrameworkName = nil
+
+-- Framework Detection
+CreateThread(function()
+    if GetResourceState('qbx_core') == 'started' then
+        -- ✅ QBox erkannt - KEINE Core Object Zuweisung!
+        FrameworkName = 'QBox'
+        print('[WheatFarm] Framework detected: QBox (Native)')
+    elseif GetResourceState('qb-core') == 'started' then
+        Framework = exports['qb-core']:GetCoreObject()
+        FrameworkName = 'QBCore'
+        print('[WheatFarm] Framework detected: QBCore')
+    elseif GetResourceState('es_extended') == 'started' then
+        FrameworkName = 'ESX'
+        print('[WheatFarm] Framework detected: ESX')
+    else
+        print('[WheatFarm] ^1ERROR: Kein unterstütztes Framework gefunden!^7')
+    end
+end)
+
+-- Helper: Notification senden
+local function Notify(text, type, duration)
+    if FrameworkName == 'QBox' then
+        exports.qbx_core:Notify(text, type, duration)
+    elseif FrameworkName == 'QBCore' then
+        Framework.Functions.Notify(text, type, duration)
+    elseif FrameworkName == 'ESX' then
+        ESX.ShowNotification(text)
+    end
+end
 
 local inField = false
 local isPlowing = false
@@ -19,7 +48,7 @@ require(localeFile)
 -- Event für Erfolgs-Benachrichtigung (nur wenn im Kreis)
 RegisterNetEvent('wheat:notifySuccess', function(amount)
     if inField then
-        exports.qbx_core:Notify(Lang:t('notify_success', amount), 'success')
+        Notify(Lang:t('notify_success', amount), 'success')
     end
 end)
 
@@ -48,21 +77,34 @@ local function hasRequiredTool()
         local count = exports.ox_inventory:Search('count', Config.RequiredTool.item)
         return count and count > 0
     elseif Config.Inventory == "qs-inventory" then
-        -- qs-inventory: Client-seitige Prüfung über QBCore
-        if not QBCore or not QBCore.Functions then
-            print('[WheatFarm] ERROR: QBCore.Functions nicht gefunden!')
-            return false
-        end
-        
-        local PlayerData = QBCore.Functions.GetPlayerData()
-        if not PlayerData or not PlayerData.items then
-            return false
-        end
-        
-        for _, item in pairs(PlayerData.items) do
-            if item and item.name == Config.RequiredTool.item then
-                return true
+        if FrameworkName == 'QBox' then
+            -- QBox: Verwende Client Module
+            local QBX = require '@qbx_core/modules/playerdata'
+            local PlayerData = QBX.PlayerData
+            if not PlayerData or not PlayerData.items then
+                return false
             end
+            
+            for _, item in pairs(PlayerData.items) do
+                if item and item.name == Config.RequiredTool.item then
+                    return true
+                end
+            end
+        elseif FrameworkName == 'QBCore' then
+            local PlayerData = Framework.Functions.GetPlayerData()
+            if not PlayerData or not PlayerData.items then
+                return false
+            end
+            
+            for _, item in pairs(PlayerData.items) do
+                if item and item.name == Config.RequiredTool.item then
+                    return true
+                end
+            end
+        elseif FrameworkName == 'ESX' then
+            ESX.TriggerServerCallback('wheat:hasItem', function(hasItem)
+                return hasItem
+            end, Config.RequiredTool.item)
         end
     end
     
@@ -75,7 +117,7 @@ local function plowWheat(isAutoFarm)
     
     -- Client-seitige Werkzeug-Prüfung
     if not hasRequiredTool() then
-        exports.qbx_core:Notify(Lang:t('notify_no_tool'), 'error')
+        Notify(Lang:t('notify_no_tool'), 'error')
         return
     end
     
@@ -150,7 +192,7 @@ local function plowWheat(isAutoFarm)
         TriggerServerEvent('wheat:plow', isAutoFarm or false)
     elseif cancelled then
         -- Benachrichtigung bei Abbruch durch Feld verlassen
-        exports.qbx_core:Notify(Lang:t('notify_action_cancelled'), 'error')
+        Notify(Lang:t('notify_action_cancelled'), 'error')
     end
     
     -- Prop wieder entfernen
@@ -222,12 +264,12 @@ CreateThread(function()
                     if not autoFarmActive then
                         -- Auto-Farm starten
                         autoFarmActive = true
-                        exports.qbx_core:Notify(Lang:t('notify_autofarm_start'), 'inform')
+                        Notify(Lang:t('notify_autofarm_start'), 'inform')
                         plowWheat(true)  -- Sofort erste Farm-Aktion starten
                     else
                         -- Auto-Farm stoppen
                         autoFarmActive = false
-                        exports.qbx_core:Notify(Lang:t('notify_autofarm_stop'), 'inform')
+                        Notify(Lang:t('notify_autofarm_stop'), 'inform')
                     end
                 end
             else
@@ -236,7 +278,7 @@ CreateThread(function()
                     inField = false
                     if autoFarmActive then
                         autoFarmActive = false
-                        exports.qbx_core:Notify(Lang:t('notify_autofarm_stop'), 'inform')
+                        Notify(Lang:t('notify_autofarm_stop'), 'inform')
                     end
                     if Config.TextUI.enabled then
                         lib.hideTextUI()
@@ -249,7 +291,7 @@ CreateThread(function()
                 inField = false
                 if autoFarmActive then
                     autoFarmActive = false
-                    exports.qbx_core:Notify(Lang:t('notify_autofarm_stop'), 'inform')
+                    Notify(Lang:t('notify_autofarm_stop'), 'inform')
                 end
                 if Config.TextUI.enabled then
                     lib.hideTextUI()
@@ -260,3 +302,10 @@ CreateThread(function()
         Wait(sleep)
     end
 end)
+
+-- ESX Callback für hasItem (nur wenn ESX)
+if FrameworkName == 'ESX' then
+    ESX.TriggerServerCallback('wheat:hasItem', function(hasItem)
+        -- Callback registriert
+    end, Config.RequiredTool.item)
+end

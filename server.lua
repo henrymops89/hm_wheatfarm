@@ -1,9 +1,38 @@
 -- =====================================================
--- SERVER.LUA - SECURED VERSION
+-- SERVER.LUA - MULTI-FRAMEWORK (QBox Native, QBCore, ESX)
 -- =====================================================
 
--- QBCore mit nur benötigten Funktionen laden (ab Version 1.3.0)
-local QBCore = exports['qbx_core']:GetCoreObject({'Functions', 'Shared'})
+local Framework = nil
+local FrameworkName = nil
+
+-- Framework Detection
+CreateThread(function()
+    if GetResourceState('qbx_core') == 'started' then
+        -- ✅ QBox - KEINE Core Object Zuweisung!
+        FrameworkName = 'QBox'
+        print('[WheatFarm] Framework detected: QBox (Native Exports)')
+    elseif GetResourceState('qb-core') == 'started' then
+        Framework = exports['qb-core']:GetCoreObject()
+        FrameworkName = 'QBCore'
+        print('[WheatFarm] Framework detected: QBCore')
+    elseif GetResourceState('es_extended') == 'started' then
+        FrameworkName = 'ESX'
+        print('[WheatFarm] Framework detected: ESX')
+    else
+        print('[WheatFarm] ^1ERROR: Kein unterstütztes Framework gefunden!^7')
+    end
+end)
+
+-- Helper: Notification senden
+local function Notify(source, text, type, duration)
+    if FrameworkName == 'QBox' then
+        exports.qbx_core:Notify(source, text, type, duration or 5000)
+    elseif FrameworkName == 'QBCore' then
+        TriggerClientEvent('QBCore:Notify', source, text, type, duration)
+    elseif FrameworkName == 'ESX' then
+        TriggerClientEvent('esx:showNotification', source, text)
+    end
+end
 
 -- Locale laden
 local lang = Config.Language or 'en'
@@ -121,14 +150,31 @@ CreateThread(function()
 end)
 
 -- =====================================================
--- Inventory Helper Funktionen
+-- Inventory Helper Funktionen (Multi-Framework)
 -- =====================================================
 
 local function AddItem(source, item, amount)
     if Config.Inventory == "ox_inventory" then
         return exports.ox_inventory:AddItem(source, item, amount)
     elseif Config.Inventory == "qs-inventory" then
-        return exports['qs-inventory']:AddItem(source, item, amount)
+        if FrameworkName == 'QBox' then
+            -- QBox mit qs-inventory (falls jemand das nutzt)
+            local player = exports.qbx_core:GetPlayer(source)
+            if player then
+                return player.Functions.AddItem(item, amount)
+            end
+        elseif FrameworkName == 'QBCore' then
+            local Player = Framework.Functions.GetPlayer(source)
+            if Player then
+                return Player.Functions.AddItem(item, amount)
+            end
+        elseif FrameworkName == 'ESX' then
+            local xPlayer = ESX.GetPlayerFromId(source)
+            if xPlayer then
+                xPlayer.addInventoryItem(item, amount)
+                return true
+            end
+        end
     end
     return false
 end
@@ -137,7 +183,23 @@ local function RemoveItem(source, item, amount)
     if Config.Inventory == "ox_inventory" then
         return exports.ox_inventory:RemoveItem(source, item, amount)
     elseif Config.Inventory == "qs-inventory" then
-        return exports['qs-inventory']:RemoveItem(source, item, amount)
+        if FrameworkName == 'QBox' then
+            local player = exports.qbx_core:GetPlayer(source)
+            if player then
+                return player.Functions.RemoveItem(item, amount)
+            end
+        elseif FrameworkName == 'QBCore' then
+            local Player = Framework.Functions.GetPlayer(source)
+            if Player then
+                return Player.Functions.RemoveItem(item, amount)
+            end
+        elseif FrameworkName == 'ESX' then
+            local xPlayer = ESX.GetPlayerFromId(source)
+            if xPlayer then
+                xPlayer.removeInventoryItem(item, amount)
+                return true
+            end
+        end
     end
     return false
 end
@@ -185,19 +247,41 @@ local function HasTool(source)
             end
         end
     elseif Config.Inventory == "qs-inventory" then
-        -- qs-inventory: Verwende direkte QBCore Export Funktion (ab Version 1.3.0)
-        local Player = exports['qbx_core']:GetPlayer(source)
-        if not Player then
-            if Config.EnableLogging then
-                print(('[WheatFarm] ERROR: Spieler %s nicht gefunden!'):format(source))
+        if FrameworkName == 'QBox' then
+            -- QBox Native Exports
+            local player = exports.qbx_core:GetPlayer(source)
+            if not player then
+                if Config.EnableLogging then
+                    print(('[WheatFarm] ERROR: Spieler %s nicht gefunden!'):format(source))
+                end
+                return false, nil
             end
-            return false, nil
-        end
-        
-        -- Prüfe ob Spieler das Item hat
-        local item = Player.Functions.GetItemByName(Config.RequiredTool.item)
-        if item and item.amount and item.amount > 0 then
-            return true, nil  -- qs-inventory hat kein Slot-System wie ox_inventory
+            
+            -- Prüfe ob Spieler das Item hat
+            local item = player.Functions.GetItemByName(Config.RequiredTool.item)
+            if item and item.amount and item.amount > 0 then
+                return true, nil
+            end
+        elseif FrameworkName == 'QBCore' then
+            local Player = Framework.Functions.GetPlayer(source)
+            if not Player then
+                return false, nil
+            end
+            
+            local item = Player.Functions.GetItemByName(Config.RequiredTool.item)
+            if item and item.amount and item.amount > 0 then
+                return true, nil
+            end
+        elseif FrameworkName == 'ESX' then
+            local xPlayer = ESX.GetPlayerFromId(source)
+            if not xPlayer then
+                return false, nil
+            end
+            
+            local item = xPlayer.getInventoryItem(Config.RequiredTool.item)
+            if item and item.count > 0 then
+                return true, nil
+            end
         end
     end
     
@@ -214,41 +298,43 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
     -- =====================================================
     -- SECURITY CHECK 1: Rate Limit (Anti-Spam)
     -- =====================================================
-    if not checkRateLimit(source) then
-        if Config.EnableLogging then
-            print(('[WheatFarm] ^1EXPLOIT VERSUCH: Spieler %s wurde wegen Rate Limiting blockiert!^7'):format(source))
-        end
-        -- Kick bei zu vielen Requests (optional)
-        if Config.Security and Config.Security.kickOnRateLimit then
-            DropPlayer(source, '[WheatFarm] Anti-Cheat: Rate Limit überschritten')
-        end
-        return
-    end
-    
-    -- =====================================================
-    -- SECURITY CHECK 2: Cooldown Check
-    -- =====================================================
-    if isOnCooldown(source) then
-        if Config.EnableLogging then
-            print(('[WheatFarm] ^3WARNUNG: Spieler %s ignoriert Cooldown!^7'):format(source))
-        end
-        exports.qbx_core:Notify(source, Lang:t('notify_cooldown'), 'error')
-        return
-    end
-    
-    -- =====================================================
-    -- SECURITY CHECK 3: Distance Check
-    -- =====================================================
-    if not isPlayerNearField(source) then
-        if Config.EnableLogging then
-            print(('[WheatFarm] ^1EXPLOIT VERSUCH: Spieler %s ist zu weit vom Feld entfernt!^7'):format(source))
+    if Config.Security and Config.Security.enabled then
+        if not checkRateLimit(source) then
+            if Config.EnableLogging then
+                print(('[WheatFarm] ^1EXPLOIT VERSUCH: Spieler %s wurde wegen Rate Limiting blockiert!^7'):format(source))
+            end
+            -- Kick bei zu vielen Requests (optional)
+            if Config.Security.kickOnRateLimit then
+                DropPlayer(source, '[WheatFarm] Anti-Cheat: Rate Limit überschritten')
+            end
+            return
         end
         
-        -- Kick bei Distance-Exploit (optional)
-        if Config.Security and Config.Security.kickOnDistanceExploit then
-            DropPlayer(source, '[WheatFarm] Anti-Cheat: Distance Exploit erkannt')
+        -- =====================================================
+        -- SECURITY CHECK 2: Cooldown Check
+        -- =====================================================
+        if Config.Security.enforceCooldown and isOnCooldown(source) then
+            if Config.EnableLogging then
+                print(('[WheatFarm] ^3WARNUNG: Spieler %s ignoriert Cooldown!^7'):format(source))
+            end
+            Notify(source, Lang:t('notify_cooldown'), 'error')
+            return
         end
-        return
+        
+        -- =====================================================
+        -- SECURITY CHECK 3: Distance Check
+        -- =====================================================
+        if Config.Security.enforceDistance and not isPlayerNearField(source) then
+            if Config.EnableLogging then
+                print(('[WheatFarm] ^1EXPLOIT VERSUCH: Spieler %s ist zu weit vom Feld entfernt!^7'):format(source))
+            end
+            
+            -- Kick bei Distance-Exploit (optional)
+            if Config.Security.kickOnDistanceExploit then
+                DropPlayer(source, '[WheatFarm] Anti-Cheat: Distance Exploit erkannt')
+            end
+            return
+        end
     end
     
     -- =====================================================
@@ -257,7 +343,7 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
     local hasTool, toolSlot = HasTool(source)
     
     if not hasTool then
-        exports.qbx_core:Notify(source, Lang:t('notify_no_tool'), 'error')
+        Notify(source, Lang:t('notify_no_tool'), 'error')
         return
     end
     
@@ -285,7 +371,7 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
         if breakRoll <= Config.RequiredTool.breakChance or durability <= 0 then
             -- Werkzeug zerstören
             RemoveItem(source, Config.RequiredTool.item, 1)
-            exports.qbx_core:Notify(source, Lang:t('notify_tool_broken'), 'error')
+            Notify(source, Lang:t('notify_tool_broken'), 'error')
             return
         else
             -- Haltbarkeit aktualisieren
@@ -294,7 +380,7 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
             -- Benachrichtigung bei niedriger Haltbarkeit
             local durabilityPercent = math.floor((durability / Config.RequiredTool.maxDurability) * 100)
             if durabilityPercent <= 20 then
-                exports.qbx_core:Notify(source, Lang:t('notify_tool_damaged', durabilityPercent), 'warning')
+                Notify(source, Lang:t('notify_tool_damaged', durabilityPercent), 'warning')
             end
         end
     end
@@ -325,6 +411,22 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
         end
     end
 end)
+
+-- =====================================================
+-- ESX Callback für hasItem Check
+-- =====================================================
+if FrameworkName == 'ESX' then
+    ESX.RegisterServerCallback('wheat:hasItem', function(source, cb, itemName)
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if not xPlayer then
+            cb(false)
+            return
+        end
+        
+        local item = xPlayer.getInventoryItem(itemName)
+        cb(item and item.count > 0)
+    end)
+end
 
 -- =====================================================
 -- Player Disconnect Cleanup

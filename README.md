@@ -1,12 +1,18 @@
-# 🌾 Wheat Farm System for QBox
+# 🌾 Wheat Farm System - Multi-Framework
 
-A comprehensive and feature-rich wheat farming system for FiveM servers running QBox framework. Players can manually or automatically farm wheat with realistic mechanics, durability systems, and multi-language support.
+A comprehensive and feature-rich wheat farming system for FiveM servers. Supports **QBox (Native!)**, **QBCore**, and **ESX Legacy** frameworks with realistic mechanics, durability systems, and multi-language support.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![Framework](https://img.shields.io/badge/framework-QBox-purple)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Framework](https://img.shields.io/badge/framework-Multi--Framework-purple)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Features
+
+### 🎯 Multi-Framework Support
+- ✅ **QBox** (Native Exports - No Bridge!)
+- ✅ **QBCore** (Full Support)
+- ✅ **ESX Legacy** (Full Support)
+- ✅ **Auto-Detection** or manual configuration
 
 ### 🎮 Farming Mechanics
 - **Manual Farming** - Press `E` to farm wheat (1-3 yield)
@@ -48,9 +54,21 @@ Compatible with multiple inventory systems:
 - Field-leave detection (auto-cancel)
 - Death protection (no ghost farming)
 
+### 🔒 Security Features
+- Rate limiting (Anti-Spam)
+- Server-side cooldown enforcement
+- Distance validation
+- Tool verification
+- Optional kick on exploit detection
+
 ## 📋 Requirements
 
-- [QBox Framework](https://github.com/Qbox-project/qbx_core)
+**Choose your Framework:**
+- [QBox Framework](https://github.com/Qbox-project/qbx_core) **OR**
+- [QBCore Framework](https://github.com/qbcore-framework) **OR**
+- [ESX Legacy](https://github.com/esx-framework/esx_core)
+
+**Additional:**
 - [ox_lib](https://github.com/overextended/ox_lib)
 - [ox_inventory](https://github.com/overextended/ox_inventory) **OR** [qs-inventory](https://github.com/qbcore-framework/qs-inventory)
 
@@ -90,17 +108,46 @@ Compatible with multiple inventory systems:
 }
 ```
 
+### For qs-inventory:
+Add the same items to your shared items configuration.
+
 4. **Configure** `config.lua` to your preferences
 5. **Add** to `server.cfg`:
+
+**For QBox:**
 ```cfg
 ensure ox_lib
 ensure ox_inventory
 ensure qbx_core
 ensure wheat_farm
 ```
+
+**For QBCore:**
+```cfg
+ensure ox_lib
+ensure ox_inventory  # or qs-inventory
+ensure qb-core
+ensure wheat_farm
+```
+
+**For ESX:**
+```cfg
+ensure ox_lib
+ensure ox_inventory
+ensure es_extended
+ensure wheat_farm
+```
+
 6. **Restart** your server
 
 ## ⚙️ Configuration
+
+### Framework Selection
+```lua
+-- Choose your framework
+Config.Framework = "auto"  -- "auto", "QBox", "QBCore", "ESX"
+-- "auto" automatically detects your framework (recommended)
+```
 
 ### Basic Settings
 ```lua
@@ -146,9 +193,16 @@ Config.AutoFarm = {
 }
 ```
 
-### Animations
+### Security Settings
 ```lua
-Config.Animation = "shovel"  -- Options: "plant", "dig", "shovel", "hammer"
+Config.Security = {
+    enabled = true,
+    maxRequestsPerMinute = 20,
+    enforceCooldown = true,
+    enforceDistance = true,
+    kickOnRateLimit = false,  -- Set to true for strict enforcement
+    kickOnDistanceExploit = false,
+}
 ```
 
 ## 🎮 How to Use
@@ -167,6 +221,31 @@ Config.Animation = "shovel"  -- Options: "plant", "dig", "shovel", "hammer"
 4. Press **G** again to stop
 5. **Note**: Lower yield (1-2 wheat) than manual mode
 
+## 🔧 Framework-Specific Notes
+
+### QBox (Native Exports)
+```lua
+-- ✅ CORRECT - Uses native QBox exports
+local player = exports.qbx_core:GetPlayer(source)
+exports.qbx_core:Notify(source, text, type)
+
+-- ❌ WRONG - Don't use GetCoreObject() for QBox!
+local QBCore = exports['qbx_core']:GetCoreObject()
+```
+
+### QBCore
+```lua
+-- ✅ Standard QBCore methods
+local QBCore = exports['qb-core']:GetCoreObject()
+local Player = QBCore.Functions.GetPlayer(source)
+```
+
+### ESX Legacy
+```lua
+-- ✅ Modern ESX import method
+local xPlayer = ESX.GetPlayerFromId(source)
+```
+
 ## 📸 Screenshots
 
 *Add your screenshots here*
@@ -177,8 +256,15 @@ None currently. Report issues on GitHub!
 
 ## 📝 Changelog
 
+### Version 2.0.0 (2024-12-11)
+- ✅ **Multi-Framework Support** (QBox Native, QBCore, ESX)
+- ✅ **Fixed QBox Native Exports** (no GetCoreObject!)
+- ✅ **Framework Auto-Detection**
+- ✅ **Improved Security System**
+- ✅ **Better Error Handling**
+
 ### Version 1.0.0 (2024-12-11)
-- Initial release
+- Initial release (QBox only)
 - Manual and auto-farm modes
 - Dual tool system (durability/permanent)
 - Multi-language support (6 languages)
@@ -205,7 +291,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Credits
 
-- **Framework**: [QBox Project](https://qbox.re)
+- **Frameworks**: 
+  - [QBox Project](https://qbox.re) - QBox Framework
+  - [QBCore Team](https://qbcore.org) - QBCore Framework
+  - [ESX Team](https://esx-framework.org) - ESX Legacy
 - **Libraries**: [Overextended (ox_lib, ox_inventory)](https://github.com/overextended)
 - **Developer**: [Your Name]
 
@@ -216,46 +305,66 @@ If you like this resource, please give it a star on GitHub!
 ---
 
 Made with ❤️ for the FiveM community
+
+## 🔧 Troubleshooting
+
+### QBox Issues
+**Problem:** Script doesn't work on QBox
+**Solution:** Make sure you're using QBox, not the QBCore bridge. The script uses native QBox exports.
+
+### Framework Detection
+**Problem:** Wrong framework detected
+**Solution:** Set `Config.Framework` manually instead of using "auto"
+
+### Notifications Not Showing
+**Problem:** No notifications appear
+**Solution:** Check if ox_lib is properly installed and started before wheat_farm
+
+### Tool Not Working
+**Problem:** Can't farm even with tool
+**Solution:** 
+1. Check if tool item name matches `Config.RequiredTool.item`
+2. Verify inventory system is correctly set in config
+3. Check server console for error messages
+
+## 📚 API Documentation
+
+### Events
+
+#### Client Events
+```lua
+-- Notify success (triggered by server)
+RegisterNetEvent('wheat:notifySuccess')
 ```
 
-## 📋 **Zusätzliche Dateien für GitHub:**
-
-### **LICENSE (MIT)**
-```
-MIT License
-
-Copyright (c) 2024 [Your Name]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+#### Server Events
+```lua
+-- Plow wheat (triggered by client)
+RegisterNetEvent('wheat:plow', function(isAutoFarm))
 ```
 
-### **.gitignore**
+### Exports
+
+#### Server Exports
+```lua
+-- Check if player has tool (internal use)
+local hasTool, slot = HasTool(source)
+
+-- Add item to player
+local success = AddItem(source, item, amount)
+
+-- Remove item from player
+local success = RemoveItem(source, item, amount)
 ```
-# FiveM
-stream/**/*.cache
-cache/
 
-# OS
-.DS_Store
-Thumbs.db
+## 🎯 Roadmap
 
-# IDE
-.vscode/
-.idea/
-*.code-workspace
+- [ ] Multiple field locations
+- [ ] Different crop types
+- [ ] Farming levels/experience
+- [ ] Special farming tools
+- [ ] Weather effects on yield
+- [ ] Seasonal variations
+- [ ] Fertilizer system
+- [ ] Crop quality system
+```
