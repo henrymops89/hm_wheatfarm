@@ -310,10 +310,3 @@ CreateThread(function()
         Wait(sleep)
     end
 end)
-
--- ESX Callback für hasItem (nur wenn ESX)
-if FrameworkName == 'ESX' then
-    ESX.TriggerServerCallback('wheat:hasItem', function(hasItem)
-        -- Callback registriert
-    end, Config.RequiredTool.item)
-end
