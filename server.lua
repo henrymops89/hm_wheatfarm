@@ -1,6 +1,9 @@
 -- =====================================================
--- SERVER.LUA
+-- SERVER.LUA - SECURED VERSION
 -- =====================================================
+
+-- QBCore mit nur benötigten Funktionen laden (ab Version 1.3.0)
+local QBCore = exports['qbx_core']:GetCoreObject({'Functions', 'Shared'})
 
 -- Locale laden
 local lang = Config.Language or 'en'
@@ -9,7 +12,118 @@ local localeFile = ('locales/%s'):format(lang)
 -- Locale-Datei laden (enthält bereits Lang Objekt)
 require(localeFile)
 
+-- =====================================================
+-- SECURITY: Cooldown & Anti-Exploit System
+-- =====================================================
+
+-- Cooldown Tracker: [source] = lastPlowTime
+local playerCooldowns = {}
+
+-- Anti-Spam: Maximale Requests pro Minute
+local requestCounter = {}
+local MAX_REQUESTS_PER_MINUTE = 20
+
+-- Hilfsfunktion: Cooldown Check
+local function isOnCooldown(source)
+    local currentTime = os.time()
+    local lastPlow = playerCooldowns[source]
+    
+    if not lastPlow then
+        return false
+    end
+    
+    -- Minimaler Cooldown: PlowTime (5 Sekunden) + 1 Sekunde Sicherheit
+    local minCooldown = math.floor(Config.PlowTime / 1000) + 1
+    local timeSinceLastPlow = currentTime - lastPlow
+    
+    return timeSinceLastPlow < minCooldown
+end
+
+-- Hilfsfunktion: Rate Limit Check
+local function checkRateLimit(source)
+    local currentTime = os.time()
+    
+    if not requestCounter[source] then
+        requestCounter[source] = {
+            count = 1,
+            resetTime = currentTime + 60
+        }
+        return true
+    end
+    
+    -- Reset Counter nach 1 Minute
+    if currentTime >= requestCounter[source].resetTime then
+        requestCounter[source] = {
+            count = 1,
+            resetTime = currentTime + 60
+        }
+        return true
+    end
+    
+    -- Increment Counter
+    requestCounter[source].count = requestCounter[source].count + 1
+    
+    -- Check if exceeded
+    if requestCounter[source].count > MAX_REQUESTS_PER_MINUTE then
+        if Config.EnableLogging then
+            print(('[WheatFarm] ^3WARNUNG: Spieler %s überschreitet Rate Limit! (%d requests/min)^7'):format(source, requestCounter[source].count))
+        end
+        return false
+    end
+    
+    return true
+end
+
+-- Hilfsfunktion: Distance Check
+local function isPlayerNearField(source)
+    local ped = GetPlayerPed(source)
+    if not ped or ped == 0 then
+        return false
+    end
+    
+    local coords = GetEntityCoords(ped)
+    if not coords then
+        return false
+    end
+    
+    local distance = #(coords - Config.FieldLocation)
+    
+    -- Spieler muss innerhalb des konfigurierten Radius sein
+    -- + 1.0 meter Toleranz für Netzwerk-Latenz
+    return distance <= (Config.FieldRadius + 1.0)
+end
+
+-- Cleanup: Entferne inaktive Spieler aus Cooldown-Tabelle
+CreateThread(function()
+    while true do
+        Wait(300000) -- Alle 5 Minuten
+        
+        local currentTime = os.time()
+        local activePlayers = {}
+        
+        -- Sammle alle aktiven Spieler
+        for _, playerId in ipairs(GetPlayers()) do
+            activePlayers[tonumber(playerId)] = true
+        end
+        
+        -- Entferne inaktive Spieler aus Cooldowns
+        for source, _ in pairs(playerCooldowns) do
+            if not activePlayers[source] then
+                playerCooldowns[source] = nil
+                requestCounter[source] = nil
+            end
+        end
+        
+        if Config.EnableLogging then
+            print('[WheatFarm] Cooldown-Tabelle bereinigt.')
+        end
+    end
+end)
+
+-- =====================================================
 -- Inventory Helper Funktionen
+-- =====================================================
+
 local function AddItem(source, item, amount)
     if Config.Inventory == "ox_inventory" then
         return exports.ox_inventory:AddItem(source, item, amount)
@@ -71,15 +185,12 @@ local function HasTool(source)
             end
         end
     elseif Config.Inventory == "qs-inventory" then
-        -- qs-inventory: Prüfe ob Item existiert
-        local QBCore = exports['qbx_core']:GetCoreObject()
-        if not QBCore then
-            print('[WheatFarm] ERROR: QBCore nicht gefunden!')
-            return false, nil
-        end
-        
-        local Player = QBCore.Functions.GetPlayer(source)
+        -- qs-inventory: Verwende direkte QBCore Export Funktion (ab Version 1.3.0)
+        local Player = exports['qbx_core']:GetPlayer(source)
         if not Player then
+            if Config.EnableLogging then
+                print(('[WheatFarm] ERROR: Spieler %s nicht gefunden!'):format(source))
+            end
             return false, nil
         end
         
@@ -93,11 +204,56 @@ local function HasTool(source)
     return false, nil
 end
 
--- Weizen pflügen
+-- =====================================================
+-- SECURED EVENT: wheat:plow
+-- =====================================================
+
 RegisterNetEvent('wheat:plow', function(isAutoFarm)
     local source = source
     
-    -- Prüfe ob Spieler Werkzeug hat (SERVER-SEITIG!)
+    -- =====================================================
+    -- SECURITY CHECK 1: Rate Limit (Anti-Spam)
+    -- =====================================================
+    if not checkRateLimit(source) then
+        if Config.EnableLogging then
+            print(('[WheatFarm] ^1EXPLOIT VERSUCH: Spieler %s wurde wegen Rate Limiting blockiert!^7'):format(source))
+        end
+        -- Kick bei zu vielen Requests (optional)
+        if Config.Security and Config.Security.kickOnRateLimit then
+            DropPlayer(source, '[WheatFarm] Anti-Cheat: Rate Limit überschritten')
+        end
+        return
+    end
+    
+    -- =====================================================
+    -- SECURITY CHECK 2: Cooldown Check
+    -- =====================================================
+    if isOnCooldown(source) then
+        if Config.EnableLogging then
+            print(('[WheatFarm] ^3WARNUNG: Spieler %s ignoriert Cooldown!^7'):format(source))
+        end
+        exports.qbx_core:Notify(source, Lang:t('notify_cooldown'), 'error')
+        return
+    end
+    
+    -- =====================================================
+    -- SECURITY CHECK 3: Distance Check
+    -- =====================================================
+    if not isPlayerNearField(source) then
+        if Config.EnableLogging then
+            print(('[WheatFarm] ^1EXPLOIT VERSUCH: Spieler %s ist zu weit vom Feld entfernt!^7'):format(source))
+        end
+        
+        -- Kick bei Distance-Exploit (optional)
+        if Config.Security and Config.Security.kickOnDistanceExploit then
+            DropPlayer(source, '[WheatFarm] Anti-Cheat: Distance Exploit erkannt')
+        end
+        return
+    end
+    
+    -- =====================================================
+    -- SECURITY CHECK 4: Tool Verification
+    -- =====================================================
     local hasTool, toolSlot = HasTool(source)
     
     if not hasTool then
@@ -105,7 +261,14 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
         return
     end
     
-    -- Werkzeug-System: Option 1 (Haltbarkeit) oder Option 3 (Permanent)
+    -- =====================================================
+    -- Setze Cooldown NACH erfolgreichen Checks
+    -- =====================================================
+    playerCooldowns[source] = os.time()
+    
+    -- =====================================================
+    -- Werkzeug-System: Haltbarkeit oder Permanent
+    -- =====================================================
     if Config.RequiredTool.enabled and Config.RequiredTool.toolType == "durability" and toolSlot then
         local durability = GetItemDurability(source, Config.RequiredTool.item, toolSlot)
         
@@ -135,9 +298,10 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
             end
         end
     end
-    -- Bei toolType = "permanent" passiert nichts - Werkzeug wird nur gecheckt
     
-    -- Ertrag basierend auf Modus berechnen
+    -- =====================================================
+    -- Ertrag berechnen
+    -- =====================================================
     local amount
     if isAutoFarm then
         amount = math.random(Config.AutoFarm.minWheat, Config.AutoFarm.maxWheat)
@@ -145,11 +309,13 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
         amount = math.random(Config.MinWheatPerPlow, Config.MaxWheatPerPlow)
     end
     
-    -- Item hinzufügen (mit gewähltem Inventory System)
+    -- =====================================================
+    -- Item hinzufügen
+    -- =====================================================
     local success = AddItem(source, Config.WheatItem, amount)
     
     if success then
-        -- Benachrichtigung wird nun client-seitig gesendet (nur wenn im Kreis)
+        -- Benachrichtigung wird client-seitig gesendet
         TriggerClientEvent('wheat:notifySuccess', source, amount)
         
         -- Optional: Logging
@@ -157,5 +323,21 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
             local mode = isAutoFarm and " (Auto-Farm)" or ""
             print(Lang:t('log_plow', source, amount) .. mode)
         end
+    end
+end)
+
+-- =====================================================
+-- Player Disconnect Cleanup
+-- =====================================================
+AddEventHandler('playerDropped', function()
+    local source = source
+    
+    -- Entferne Spieler aus Cooldown-Tabellen
+    if playerCooldowns[source] then
+        playerCooldowns[source] = nil
+    end
+    
+    if requestCounter[source] then
+        requestCounter[source] = nil
     end
 end)

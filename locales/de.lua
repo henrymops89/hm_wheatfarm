@@ -16,6 +16,7 @@ local Translations = {
     notify_no_tool = "Du benötigst eine Hacke zum Farmen!",
     notify_tool_broken = "Deine Hacke ist kaputt gegangen! 💔",
     notify_tool_damaged = "Deine Hacke hat Schaden genommen (%d%% Haltbarkeit)",
+    notify_cooldown = "Bitte warte noch einen Moment! ⏱️",
     
     -- Logging
     log_plow = "[WheatFarm] Spieler %s hat %dx Weizen gepflügt"

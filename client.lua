@@ -2,6 +2,9 @@
 -- CLIENT.LUA
 -- =====================================================
 
+-- QBCore mit nur benötigten Funktionen laden (ab Version 1.3.0)
+local QBCore = exports['qbx_core']:GetCoreObject({'Functions'})
+
 local inField = false
 local isPlowing = false
 local autoFarmActive = false
@@ -46,9 +49,8 @@ local function hasRequiredTool()
         return count and count > 0
     elseif Config.Inventory == "qs-inventory" then
         -- qs-inventory: Client-seitige Prüfung über QBCore
-        local QBCore = exports['qbx_core']:GetCoreObject()
-        if not QBCore then
-            print('[WheatFarm] ERROR: QBCore nicht gefunden!')
+        if not QBCore or not QBCore.Functions then
+            print('[WheatFarm] ERROR: QBCore.Functions nicht gefunden!')
             return false
         end
         

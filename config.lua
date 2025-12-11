@@ -1,3 +1,7 @@
+-- =====================================================
+-- CONFIG.LUA
+-- =====================================================
+
 Config = {}
 
 -- Sprache: "de", "en", "fr", "es", "pl", "tr"
@@ -116,5 +120,29 @@ Config.TextUI = {
     position = 'left-center'  -- "right-center", "left-center", "top-center", "bottom-center"
 }
 
+-- =====================================================
+-- SECURITY / ANTI-CHEAT SETTINGS
+-- =====================================================
+Config.Security = {
+    -- Rate Limiting (Anti-Spam)
+    enabled = true,                              -- Aktiviere Security Features
+    maxRequestsPerMinute = 20,                   -- Max. 20 Requests pro Minute pro Spieler
+    
+    -- Cooldown Enforcement
+    enforceCooldown = true,                      -- Erzwinge Cooldown server-seitig
+    minCooldownSeconds = 6,                      -- Min. 6 Sekunden zwischen Plows (PlowTime + 1s)
+    
+    -- Distance Check
+    enforceDistance = true,                      -- Prüfe Entfernung zum Feld
+    distanceTolerance = 1.0,                     -- +1 Meter Toleranz für Netzwerk-Latenz
+    
+    -- Punishment (optional)
+    kickOnRateLimit = false,                     -- Kick bei Rate Limit Überschreitung
+    kickOnDistanceExploit = false,               -- Kick bei Distance Exploit
+    
+    -- Logging
+    logSuspiciousActivity = true,                -- Logge verdächtige Aktivitäten in Console
+}
+
 -- Debug / Logging
-Config.EnableLogging = false  -- Console Logs für jede Aktion
+Config.EnableLogging = true  -- Console Logs für jede Aktion und Security Events
