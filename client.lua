@@ -15,9 +15,11 @@ CreateThread(function()
         Framework = exports['qb-core']:GetCoreObject()
         FrameworkName = 'QBCore'
         print('[WheatFarm] Framework detected: QBCore')
-    elseif GetResourceState('es_extended') == 'started' then
-        FrameworkName = 'ESX'
-        print('[WheatFarm] Framework detected: ESX')
+elseif GetResourceState('es_extended') == 'started' then
+    FrameworkName = 'ESX'
+    -- ESX Import (moderne Methode)
+    -- Stelle sicher dass @es_extended/imports.lua in fxmanifest ist
+    print('[WheatFarm] Framework detected: ESX')
     else
         print('[WheatFarm] ^1ERROR: Kein unterstütztes Framework gefunden!^7')
     end
