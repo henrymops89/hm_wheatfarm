@@ -78,7 +78,7 @@ Config.WheatItem = "wheat"
 
 -- Benötigtes Werkzeug System
 Config.RequiredTool = {
-    enabled = true,
+    enabled = false,
     item = "hoe",                    -- Hacke/Werkzeug Item
     
     -- Option 1: Mit Haltbarkeit (verbrauchbar)

@@ -81,7 +81,7 @@ local function hasRequiredTool()
     elseif Config.Inventory == "qs-inventory" then
         if FrameworkName == 'QBox' then
             -- QBox: Verwende Client Module
-            // ✅ MIT ERROR HANDLING:
+            --// ✅ MIT ERROR HANDLING:
 if FrameworkName == 'QBox' then
     local success, QBX = pcall(require, '@qbx_core/modules/playerdata')
     if not success then
