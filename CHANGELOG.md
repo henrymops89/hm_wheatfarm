@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2024-12-12
+
+### ✨ Added
+- **qs-inventory Support**
+  - Full compatibility with Quasar Advanced Inventory
+  - Universal inventory functions work with both ox_inventory and qs-inventory
+  - Automatic detection and handling of different metadata structures
+  - Durability system works with both `metadata.durability` (ox) and `info.quality` (qs)
+  
+- **Inventory Auto-Detection**
+  - `Config.Inventory = "auto"` automatically detects installed inventory system
+  - Checks for ox_inventory first, then qs-inventory
+  - Fallback to ox_inventory if neither found
+  - Console output shows detected system
+  
+### 📚 Documentation
+- Added QS_INVENTORY_SUPPORT.md with complete setup guide
+- Added LEARNED_QS_INVENTORY.md with all qs-inventory exports and commands
+- Updated README.md with qs-inventory configuration
+- Added comparison between ox_inventory and qs-inventory
+- Included troubleshooting section for qs-inventory
+
+### 🔧 Technical
+- Created universal helper functions:
+  - `AddItem()` - Works with both inventory systems
+  - `RemoveItem()` - Works with both inventory systems
+  - `GetItem()` - Works with both inventory systems
+  - `GetItems()` - Works with both inventory systems
+  - `CanCarryItem()` - Works with both inventory systems
+  - `SetItemMetadata()` - Works with both inventory systems
+  - `GetItemSlot()` - Works with both inventory systems
+- Inventory system detection runs on server startup
+- `InventorySystem` variable stores detected or manual system
+- Console now shows selected inventory system on startup
+- Improved metadata handling for durability
+
+### 🐛 Fixes
+- Fixed durability system to work universally
+- Improved item slot detection
+- Better error handling for inventory operations
+
+---
+
 ## [1.0.0] - 2024-12-12
 
 ### ✨ Added
@@ -61,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   
 - **Inventory Compatibility**
   - ox_inventory (with metadata support)
-  - qs-inventory
+  - qs-inventory (Quasar Advanced Inventory)
+  - Universal inventory functions for seamless compatibility
 
 ### 🔧 Technical Details
 
@@ -124,4 +168,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[1.0.1]: https://github.com/henrymops89/hm_wheatfarm/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/henrymops89/hm_wheatfarm/releases/tag/v1.0.0

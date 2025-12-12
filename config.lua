@@ -11,8 +11,9 @@ Config.Framework = "auto"
 -- Sprache: "de", "en", "fr", "es", "pl", "tr"
 Config.Language = "de"
 
--- Inventory System: "ox_inventory", "qs-inventory"
-Config.Inventory = "ox_inventory"
+-- Inventory System: "auto", "ox_inventory", "qs-inventory"
+-- "auto" = Automatische Erkennung (empfohlen)
+Config.Inventory = "auto"
 
 -- Weizenfeld Location (eine große Stelle)
 Config.FieldLocation = vector3(2229.68, 5577.36, 53.85)

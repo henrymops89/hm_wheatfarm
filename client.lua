@@ -452,3 +452,21 @@ CreateThread(function()
         end
     end
 end)
+
+-- =====================================================
+-- SYSTEM INFO EVENT (für Client Console)
+-- =====================================================
+RegisterNetEvent('wheat:systemInfo', function(data)
+    print('╔════════════════════════════════════╗')
+    print('║   🌾 HM Wheat Farm - System Info   ║')
+    print('╠════════════════════════════════════╣')
+    print('║ Framework: ' .. data.framework .. string.rep(' ', 24 - #data.framework) .. '║')
+    print('║ Inventory: ' .. data.inventory .. string.rep(' ', 24 - #data.inventory) .. '║')
+    print('╚════════════════════════════════════╝')
+end)
+
+-- Debug Command für Client Console (F8)
+RegisterCommand('wheatinfo', function()
+    -- Fordere Info vom Server an
+    TriggerServerEvent('wheat:requestInfo')
+end, false)

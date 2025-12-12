@@ -1,4 +1,4 @@
-# 🌾 HM Wheat Farm | Complete AI
+# 🌾 HM Wheat Farm
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/henrymops89/hm_wheatfarm/releases)
 [![Framework](https://img.shields.io/badge/framework-Multi--Framework-purple.svg)](https://github.com/henrymops89/hm_wheatfarm)
@@ -43,7 +43,8 @@
 - 🇹🇷 Turkish (Türkçe)
 
 ### 📦 **Inventory Compatibility**
-- ox_inventory (with metadata support)
+- ox_inventory (with metadata support) ✅
+- qs-inventory (Quasar Advanced Inventory) ✅
 - qs-inventory
 
 ### 🔒 **Security Features**
@@ -71,7 +72,7 @@
 
 **Dependencies:**
 - [ox_lib](https://github.com/overextended/ox_lib) (required)
-- [ox_inventory](https://github.com/overextended/ox_inventory) OR [qs-inventory](https://github.com/qbcore-framework/qs-inventory)
+- [ox_inventory](https://github.com/overextended/ox_inventory) OR [qs-inventory](https://quasar-store.com)
 
 ---
 
@@ -104,8 +105,32 @@ git clone https://github.com/henrymops89/hm_wheatfarm.git
 }
 ```
 
-#### For qs-inventory:
-Add the same items to your `qb-core/shared/items.lua` or `qbx_core/shared/items.lua`
+#### For qs-inventory (`qs-inventory/shared/items.lua`):
+```lua
+['hoe'] = {
+    name = 'hoe',
+    label = 'Hoe',
+    weight = 1000,
+    type = 'item',
+    image = 'hoe.png',
+    unique = false,
+    useable = false,
+    shouldClose = true,
+    description = 'A farming hoe with durability system',
+},
+
+['wheat'] = {
+    name = 'wheat',
+    label = 'Wheat',
+    weight = 100,
+    type = 'item',
+    image = 'wheat.png',
+    unique = false,
+    useable = false,
+    shouldClose = true,
+    description = 'Freshly harvested wheat',
+}
+```
 
 ### 3. Configure (Optional)
 Edit `config.lua` to customize:
@@ -156,9 +181,31 @@ Config.Framework = "auto"  -- Auto-detect (recommended)
 -- Or manually: "QBox", "QBCore", "ESX"
 ```
 
+### Inventory System
+```lua
+Config.Inventory = "auto"  -- Auto-detect (recommended)
+-- Or manually: "ox_inventory", "qs-inventory"
+```
+
 ### Language
 ```lua
 Config.Language = "en"  -- de, en, fr, es, pl, tr
+```
+
+### Inventory System
+```lua
+Config.Inventory = "auto"  -- "auto" (recommended), "ox_inventory" or "qs-inventory"
+```
+
+**Auto-detection:**
+- Automatically detects ox_inventory or qs-inventory
+- No manual configuration needed
+- Fallback to ox_inventory if neither found
+
+**Manual override:**
+```lua
+Config.Inventory = "ox_inventory"  -- Force ox_inventory
+Config.Inventory = "qs-inventory"  -- Force qs-inventory
 ```
 
 ### Field Location
@@ -228,6 +275,33 @@ Config.ShowMarker = true  -- Set to false for 0.00ms guaranteed
 
 ---
 
+## 🔧 Framework-Specific Notes
+
+### QBox (Native Exports)
+```lua
+-- ✅ CORRECT - Uses native QBox exports
+local player = exports.qbx_core:GetPlayer(source)
+exports.qbx_core:Notify(source, text, type)
+
+-- ❌ WRONG - Don't use GetCoreObject() for QBox
+local QBCore = exports['qbx_core']:GetCoreObject()
+```
+
+### QBCore
+```lua
+-- ✅ Standard QBCore methods
+local QBCore = exports['qb-core']:GetCoreObject()
+local Player = QBCore.Functions.GetPlayer(source)
+```
+
+### ESX Legacy
+```lua
+-- ✅ Dynamic ESX import (no manual fxmanifest edit needed)
+-- Automatically loads via exports['es_extended']:getSharedObject()
+```
+
+---
+
 ## 📊 Performance
 
 ### Resmon Results
@@ -242,6 +316,34 @@ In field (without marker): 0.00ms
 - Smart throttling (distance checks every 200ms)
 - Instant input detection (Wait(0) for key checks)
 - Optional marker disable for maximum performance
+
+---
+
+## 🐛 Troubleshooting
+
+### Script doesn't start
+**Check:**
+1. ox_lib is installed and started before hm_wheatfarm
+2. Framework resource is running
+3. Console for error messages
+
+### Framework not detected
+**Solution:**
+```lua
+-- In config.lua, set manually:
+Config.Framework = "QBox"  -- or "QBCore" or "ESX"
+```
+
+### Notifications not showing
+**Check:**
+1. ox_lib is properly installed
+2. Framework exports are working
+
+### Tool not working
+**Check:**
+1. Item name matches `Config.RequiredTool.item`
+2. Inventory system setting is correct
+3. Item exists in inventory database
 
 ---
 

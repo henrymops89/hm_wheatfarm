@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'henrymops89'
 description 'HM Wheat Farm - Multi-Framework Wheat Farming System'
-version '1.0.0'
+version '1.0.1'
 
 shared_scripts {
     -- ⚠️ ESX USERS ONLY: Uncomment the line below if using ESX Legacy!

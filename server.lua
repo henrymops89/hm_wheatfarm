@@ -5,9 +5,14 @@
 local Framework = nil
 local FrameworkName = nil
 local ESX = nil
+local InventorySystem = nil
 
--- Framework Detection
+-- Framework & Inventory Detection
 CreateThread(function()
+    -- Warte kurz damit alle Resources geladen sind
+    Wait(1000)
+    
+    -- Framework Detection
     if GetResourceState('qbx_core') == 'started' then
         -- ✅ QBox - KEINE Core Object Zuweisung!
         FrameworkName = 'QBox'
@@ -33,7 +38,184 @@ CreateThread(function()
     else
         print('[WheatFarm] ^1ERROR: Kein unterstütztes Framework gefunden!^7')
     end
+    
+    -- Inventory System Detection
+    print('[WheatFarm] Checking Inventory System... (Config: ' .. Config.Inventory .. ')')
+    
+    if Config.Inventory == "auto" then
+        local oxState = GetResourceState('ox_inventory')
+        local qsState = GetResourceState('qs-inventory')
+        
+        print('[WheatFarm] ox_inventory state: ' .. oxState)
+        print('[WheatFarm] qs-inventory state: ' .. qsState)
+        
+        if oxState == 'started' then
+            InventorySystem = 'ox_inventory'
+            print('[WheatFarm] ✅ Inventory System detected: ox_inventory')
+        elseif qsState == 'started' then
+            InventorySystem = 'qs-inventory'
+            print('[WheatFarm] ✅ Inventory System detected: qs-inventory')
+        else
+            -- Fallback: Prüfe welches Resource existiert
+            if oxState ~= 'missing' then
+                InventorySystem = 'ox_inventory'
+                print('[WheatFarm] ⚠️ ox_inventory gefunden aber nicht gestartet! Verwende ox_inventory.')
+            elseif qsState ~= 'missing' then
+                InventorySystem = 'qs-inventory'
+                print('[WheatFarm] ⚠️ qs-inventory gefunden aber nicht gestartet! Verwende qs-inventory.')
+            else
+                print('[WheatFarm] ^1ERROR: Kein Inventory System gefunden!^7')
+                print('[WheatFarm] ^3Bitte installiere ox_inventory oder qs-inventory!^7')
+                InventorySystem = 'ox_inventory' -- Default Fallback
+            end
+        end
+    else
+        -- Manuell gesetzt
+        InventorySystem = Config.Inventory
+        print('[WheatFarm] Inventory System (manual): ' .. InventorySystem)
+    end
+    
+    print('[WheatFarm] =====================================')
+    print('[WheatFarm] Initialization Complete!')
+    print('[WheatFarm] Framework: ' .. (FrameworkName or 'Unknown'))
+    print('[WheatFarm] Inventory: ' .. (InventorySystem or 'Unknown'))
+    print('[WheatFarm] =====================================')
+    
+    -- Sende Info an alle Clients
+    TriggerClientEvent('wheat:systemInfo', -1, {
+        framework = FrameworkName or 'Unknown',
+        inventory = InventorySystem or 'Unknown'
+    })
 end)
+
+-- Debug Command
+RegisterCommand('wheatdebug', function(source, args, rawCommand)
+    if source == 0 then -- Server console only
+        print('=== WheatFarm Debug Info ===')
+        print('Framework: ' .. tostring(FrameworkName))
+        print('Inventory System: ' .. tostring(InventorySystem))
+        print('Config.Inventory: ' .. tostring(Config.Inventory))
+        print('ox_inventory state: ' .. GetResourceState('ox_inventory'))
+        print('qs-inventory state: ' .. GetResourceState('qs-inventory'))
+    else
+        -- Wenn vom Spieler aufgerufen, sende Info zurück
+        TriggerClientEvent('wheat:systemInfo', source, {
+            framework = FrameworkName or 'Unknown',
+            inventory = InventorySystem or 'Unknown'
+        })
+    end
+end, false)
+
+-- =====================================================
+-- UNIVERSAL INVENTORY HELPER FUNCTIONS
+-- =====================================================
+
+-- Add Item (Universal für ox_inventory & qs-inventory)
+local function AddItem(source, item, amount, metadata)
+    if InventorySystem == 'ox_inventory' then
+        return exports.ox_inventory:AddItem(source, item, amount, metadata or {})
+    elseif InventorySystem == 'qs-inventory' then
+        return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata or {})
+    end
+    return false
+end
+
+-- Remove Item (Universal)
+local function RemoveItem(source, item, amount, metadata)
+    if InventorySystem == 'ox_inventory' then
+        return exports.ox_inventory:RemoveItem(source, item, amount, metadata)
+    elseif InventorySystem == 'qs-inventory' then
+        return exports['qs-inventory']:RemoveItem(source, item, amount, nil, metadata)
+    end
+    return false
+end
+
+-- Can Carry Item (Universal)
+local function CanCarryItem(source, item, amount)
+    if InventorySystem == 'ox_inventory' then
+        return exports.ox_inventory:CanCarryItem(source, item, amount)
+    elseif InventorySystem == 'qs-inventory' then
+        return exports['qs-inventory']:CanCarryItem(source, item, amount)
+    end
+    return false
+end
+
+-- Get Item (Universal)
+local function GetItem(source, item)
+    if InventorySystem == 'ox_inventory' then
+        return exports.ox_inventory:GetItem(source, item, nil, true)
+    elseif InventorySystem == 'qs-inventory' then
+        local inventory = exports['qs-inventory']:GetInventory(source)
+        if not inventory then return nil end
+        
+        -- Suche Item in Inventory
+        for slot, itemData in pairs(inventory) do
+            if itemData.name == item then
+                return itemData
+            end
+        end
+        return nil
+    end
+    return nil
+end
+
+-- Get All Items of Type (Universal)
+local function GetItems(source, item)
+    if InventorySystem == 'ox_inventory' then
+        return exports.ox_inventory:GetItem(source, item, nil, false) or {}
+    elseif InventorySystem == 'qs-inventory' then
+        local inventory = exports['qs-inventory']:GetInventory(source)
+        if not inventory then return {} end
+        
+        local items = {}
+        for slot, itemData in pairs(inventory) do
+            if itemData.name == item then
+                table.insert(items, itemData)
+            end
+        end
+        return items
+    end
+    return {}
+end
+
+-- Set Item Metadata/Durability (Universal)
+local function SetItemMetadata(source, slot, metadata)
+    if InventorySystem == 'ox_inventory' then
+        -- ox_inventory nutzt SetDurability für Durability
+        if metadata.durability then
+            return exports.ox_inventory:SetDurability(source, slot, metadata.durability)
+        elseif metadata.quality then
+            return exports.ox_inventory:SetDurability(source, slot, metadata.quality)
+        end
+        return false
+    elseif InventorySystem == 'qs-inventory' then
+        return exports['qs-inventory']:SetItemMetadata(source, slot, metadata)
+    end
+    return false
+end
+
+-- Get Item Slot (Universal)
+local function GetItemSlot(source, item)
+    if InventorySystem == 'ox_inventory' then
+        local itemData = exports.ox_inventory:GetItem(source, item, nil, true)
+        return itemData and itemData.slot or nil
+    elseif InventorySystem == 'qs-inventory' then
+        local inventory = exports['qs-inventory']:GetInventory(source)
+        if not inventory then return nil end
+        
+        for slot, itemData in pairs(inventory) do
+            if itemData.name == item then
+                return slot
+            end
+        end
+        return nil
+    end
+    return nil
+end
+
+-- =====================================================
+-- FRAMEWORK HELPER FUNCTIONS
+-- =====================================================
 
 -- Helper: Notification senden
 local function Notify(source, text, type, duration)
@@ -162,152 +344,56 @@ CreateThread(function()
 end)
 
 -- =====================================================
--- Inventory Helper Funktionen (Multi-Framework)
+-- TOOL DURABILITY & VALIDATION
 -- =====================================================
 
-local function AddItem(source, item, amount)
-    if Config.Inventory == "ox_inventory" then
-        return exports.ox_inventory:AddItem(source, item, amount)
-    elseif Config.Inventory == "qs-inventory" then
-        if FrameworkName == 'QBox' then
-            -- QBox mit qs-inventory (falls jemand das nutzt)
-            local player = exports.qbx_core:GetPlayer(source)
-            if player then
-                return player.Functions.AddItem(item, amount)
-            end
-        elseif FrameworkName == 'QBCore' then
-            local Player = Framework.Functions.GetPlayer(source)
-            if Player then
-                return Player.Functions.AddItem(item, amount)
-            end
-        elseif FrameworkName == 'ESX' then
-            if ESX then
-                local xPlayer = ESX.GetPlayerFromId(source)
-                if xPlayer then
-                    xPlayer.addInventoryItem(item, amount)
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
-
-local function RemoveItem(source, item, amount)
-    if Config.Inventory == "ox_inventory" then
-        return exports.ox_inventory:RemoveItem(source, item, amount)
-    elseif Config.Inventory == "qs-inventory" then
-        if FrameworkName == 'QBox' then
-            local player = exports.qbx_core:GetPlayer(source)
-            if player then
-                return player.Functions.RemoveItem(item, amount)
-            end
-        elseif FrameworkName == 'QBCore' then
-            local Player = Framework.Functions.GetPlayer(source)
-            if Player then
-                return Player.Functions.RemoveItem(item, amount)
-            end
-        elseif FrameworkName == 'ESX' then
-            if ESX then
-                local xPlayer = ESX.GetPlayerFromId(source)
-                if xPlayer then
-                    xPlayer.removeInventoryItem(item, amount)
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
-
-local function GetItemDurability(source, item, slot)
-    if Config.Inventory == "ox_inventory" then
+-- Get Item Durability/Quality (Universal)
+local function GetItemDurability(source, slot)
+    if InventorySystem == "ox_inventory" then
         local itemData = exports.ox_inventory:GetSlot(source, slot)
         if itemData and itemData.metadata and itemData.metadata.durability then
             return itemData.metadata.durability
+        end
+    elseif InventorySystem == "qs-inventory" then
+        local inventory = exports['qs-inventory']:GetInventory(source)
+        if inventory and inventory[slot] then
+            local item = inventory[slot]
+            -- qs-inventory nutzt 'info.quality' für Durability
+            if item.info and item.info.quality then
+                return item.info.quality
+            end
         end
     end
     return nil
 end
 
-local function SetItemDurability(source, item, slot, durability)
-    if Config.Inventory == "ox_inventory" then
-        local itemData = exports.ox_inventory:GetSlot(source, slot)
-        if itemData then
-            itemData.metadata = itemData.metadata or {}
-            itemData.metadata.durability = durability
-            exports.ox_inventory:SetMetadata(source, slot, itemData.metadata)
-            return true
-        end
+-- Set Item Durability/Quality (Universal)
+local function SetItemDurability(source, slot, durability)
+    if InventorySystem == "ox_inventory" then
+        return exports.ox_inventory:SetDurability(source, slot, durability)
+    elseif InventorySystem == "qs-inventory" then
+        local metadata = { quality = durability }
+        return exports['qs-inventory']:SetItemMetadata(source, slot, metadata)
     end
     return false
 end
 
+-- Has Tool Check (Universal)
 local function HasTool(source)
     if not Config.RequiredTool.enabled then
         return true, nil
     end
     
-    if Config.Inventory == "ox_inventory" then
-        -- ox_inventory: Prüfe ob Item existiert und finde den Slot
-        local count = exports.ox_inventory:Search(source, 'count', Config.RequiredTool.item)
-        if count and count > 0 then
-            -- Finde Slot des Items
-            local inventory = exports.ox_inventory:GetInventory(source)
-            if inventory and inventory.items then
-                for slot, itemData in pairs(inventory.items) do
-                    if itemData and itemData.name == Config.RequiredTool.item then
-                        return true, slot
-                    end
-                end
-            end
-        end
-    elseif Config.Inventory == "qs-inventory" then
-        if FrameworkName == 'QBox' then
-            -- QBox Native Exports
-            local player = exports.qbx_core:GetPlayer(source)
-            if not player then
-                if Config.EnableLogging then
-                    print(('[WheatFarm] ERROR: Spieler %s nicht gefunden!'):format(source))
-                end
-                return false, nil
-            end
-            
-            -- Prüfe ob Spieler das Item hat
-            local item = player.Functions.GetItemByName(Config.RequiredTool.item)
-            if item and item.amount and item.amount > 0 then
-                return true, nil
-            end
-        elseif FrameworkName == 'QBCore' then
-            local Player = Framework.Functions.GetPlayer(source)
-            if not Player then
-                return false, nil
-            end
-            
-            local item = Player.Functions.GetItemByName(Config.RequiredTool.item)
-            if item and item.amount and item.amount > 0 then
-                return true, nil
-            end
-        elseif FrameworkName == 'ESX' then
-            if ESX then
-                local xPlayer = ESX.GetPlayerFromId(source)
-                if not xPlayer then
-                    return false, nil
-                end
-                
-                local item = xPlayer.getInventoryItem(Config.RequiredTool.item)
-                if item and item.count > 0 then
-                    return true, nil
-                end
-            end
-        end
+    local toolItem = GetItem(source, Config.RequiredTool.item)
+    if toolItem then
+        return true, toolItem.slot
     end
     
     return false, nil
 end
 
 -- =====================================================
--- SECURED EVENT: wheat:plow
+-- MAIN WHEAT FARMING EVENT
 -- =====================================================
 
 RegisterNetEvent('wheat:plow', function(isAutoFarm)
@@ -374,7 +460,7 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
     -- Werkzeug-System: Haltbarkeit oder Permanent
     -- =====================================================
     if Config.RequiredTool.enabled and Config.RequiredTool.toolType == "durability" and toolSlot then
-        local durability = GetItemDurability(source, Config.RequiredTool.item, toolSlot)
+        local durability = GetItemDurability(source, toolSlot)
         
         if not durability then
             -- Erstes Mal benutzt - setze volle Haltbarkeit
@@ -393,7 +479,7 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
             return
         else
             -- Haltbarkeit aktualisieren
-            SetItemDurability(source, Config.RequiredTool.item, toolSlot, durability)
+            SetItemDurability(source, toolSlot, durability)
             
             -- Benachrichtigung bei niedriger Haltbarkeit
             local durabilityPercent = math.floor((durability / Config.RequiredTool.maxDurability) * 100)
@@ -460,4 +546,15 @@ AddEventHandler('playerDropped', function()
     if requestCounter[source] then
         requestCounter[source] = nil
     end
+end)
+
+-- =====================================================
+-- Client Info Request
+-- =====================================================
+RegisterNetEvent('wheat:requestInfo', function()
+    local source = source
+    TriggerClientEvent('wheat:systemInfo', source, {
+        framework = FrameworkName or 'Unknown',
+        inventory = InventorySystem or 'Unknown'
+    })
 end)
