@@ -2,12 +2,13 @@ fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-author 'Your Name'
-description 'Multi-Framework Wheat Farm System (QBox Native, QBCore, ESX)'
-version '2.0.0'
+author 'henrymops89'
+description 'HM Wheat Farm - Multi-Framework Wheat Farming System'
+version '1.0.0'
 
 shared_scripts {
-   -- '@es_extended/imports.lua',  -- ESX Import hinzufügen
+    -- ⚠️ ESX USERS ONLY: Uncomment the line below if using ESX Legacy!
+    -- '@es_extended/imports.lua',
     '@ox_lib/init.lua',
     'config.lua',
     'locale.lua'
@@ -30,5 +31,11 @@ dependencies {
     'ox_lib',
 }
 
--- Optional dependencies (only needed if using specific inventory)
--- ox_inventory or qs-inventory
+-- At least one framework required (choose one):
+-- - qbx_core (for QBox)
+-- - qb-core (for QBCore)
+-- - es_extended (for ESX Legacy)
+
+-- At least one inventory required (choose one):
+-- - ox_inventory (recommended)
+-- - qs-inventory

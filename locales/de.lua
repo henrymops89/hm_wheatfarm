@@ -7,12 +7,15 @@ local Translations = {
     
     -- Progress Bar
     progress_plowing = "Weizen wird gepflügt...",
+    progress_cooldown = "Wartezeit bis zur nächsten Ernte...",
+    progress_cancel = "Abbrechen",
     
     -- Benachrichtigungen
     notify_success = "Du hast %dx Weizen gepflügt! 🌾",
     notify_autofarm_start = "Auto-Farm aktiviert! (Weniger Ertrag)",
     notify_autofarm_stop = "Auto-Farm deaktiviert!",
     notify_action_cancelled = "Aktion abgebrochen - Feld verlassen!",
+    notify_action_cancelled_manual = "Aktion abgebrochen!",
     notify_no_tool = "Du benötigst eine Hacke zum Farmen!",
     notify_tool_broken = "Deine Hacke ist kaputt gegangen! 💔",
     notify_tool_damaged = "Deine Hacke hat Schaden genommen (%d%% Haltbarkeit)",

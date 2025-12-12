@@ -2,98 +2,108 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.0] - 2024-12-11
-
-### ✨ Added
-- **Multi-Framework Support**: QBox (Native!), QBCore, ESX Legacy
-- **Framework Auto-Detection**: Automatically detects installed framework
-- **Manual Framework Selection**: Option to manually set framework in config
-- **Improved Security System**: Enhanced anti-cheat and validation
-- **Better Error Handling**: More robust error checking and logging
-- **Framework-Specific Helpers**: Optimized functions for each framework
-
-### 🔧 Fixed
-- **Critical QBox Bug**: Removed incorrect `GetCoreObject()` usage
-- **QBox Native Exports**: Now uses direct exports like `exports.qbx_core:GetPlayer(source)`
-- **QBox Notifications**: Fixed notification system for QBox
-- **Client-Side Tool Check**: Improved tool validation across frameworks
-- **ESX Compatibility**: Added proper ESX callback system
-
-### 🚀 Changed
-- **Code Structure**: Separated framework logic for better maintainability
-- **Notification System**: Universal notification function supporting all frameworks
-- **Inventory Integration**: Better support for both ox_inventory and qs-inventory
-- **Documentation**: Comprehensive README with framework-specific examples
-
-### 📝 Technical Details
-
-#### QBox Changes
-```lua
--- ❌ OLD (WRONG):
-local QBCore = exports['qbx_core']:GetCoreObject()
-
--- ✅ NEW (CORRECT):
-local player = exports.qbx_core:GetPlayer(source)
-exports.qbx_core:Notify(source, text, type)
-```
-
-#### Framework Detection
-```lua
--- Auto-detection on server/client start
-if GetResourceState('qbx_core') == 'started' then
-    FrameworkName = 'QBox'
-elseif GetResourceState('qb-core') == 'started' then
-    FrameworkName = 'QBCore'
-elseif GetResourceState('es_extended') == 'started' then
-    FrameworkName = 'ESX'
-end
-```
-
-### 🔐 Security
-- Rate limiting improved
-- Server-side cooldown enforcement
-- Distance validation with tolerance
-- Tool verification on both client and server
-- Optional kick on exploit detection
-
-### 📚 Documentation
-- Added framework-specific setup guides
-- Troubleshooting section
-- API documentation
-- Configuration examples for all frameworks
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.0.0] - 2024-12-11
+## [1.0.0] - 2024-12-12
 
-### ✨ Initial Release
+### ✨ Added
+- **Multi-Framework Support**
+  - QBox Framework (Native Exports)
+  - QBCore Framework (Standard Implementation)
+  - ESX Legacy (Dynamic Import)
+  - Automatic framework detection
+  
+- **Farming Features**
+  - Manual farming mode (E key) - 1-3 wheat yield
+  - Auto-farm mode (G key) - 1-2 wheat yield
+  - Cancel farming anytime with same key
+  - Cooldown progressbar with cancel instruction
+  - 4 different farming animations with props
+  
+- **Tool System**
+  - Durability mode (100 uses + 5% break chance)
+  - Permanent mode (never breaks)
+  - Client & server-side validation
+  - Tool damage notifications
+  
+- **User Interface**
+  - ox_lib TextUI with smart hide/show
+  - Progressbars showing cancel instructions
+  - Field markers with customizable appearance
+  - Map blip for field location
+  - Death & field-leave detection
+  
+- **Multi-Language Support**
+  - German (Deutsch)
+  - English
+  - French (Français)
+  - Spanish (Español)
+  - Polish (Polski)
+  - Turkish (Türkçe)
+  
+- **Performance Features**
+  - Separate threads for markers & interactions
+  - Smart throttling (200ms distance checks)
+  - Instant input detection (Wait(0))
+  - Optional marker disable for 0.00ms
+  - Optimized resmon (0.00-0.01ms in field)
+  
+- **Security Features**
+  - Rate limiting (20 requests/minute)
+  - Server-side cooldown enforcement
+  - Distance validation with tolerance
+  - Tool verification (client & server)
+  - Optional kick on exploit detection
+  - Comprehensive logging
+  
+- **Inventory Compatibility**
+  - ox_inventory (with metadata support)
+  - qs-inventory
 
-#### Features
-- Manual farming system (E key)
-- Auto-farm mode (G key)
-- Tool durability system
-- Permanent tool option
-- Multi-language support (6 languages)
-- ox_lib UI integration
-- Progress bars with animations
-- 4 different farming animations
-- Configurable markers and blips
-- Field-leave detection
-- Death protection
-- Basic security system
+### 🔧 Technical Details
 
-#### Supported Systems
-- QBox Framework (with incorrect implementation)
-- ox_inventory
-- qs-inventory
+#### QBox Implementation
+- Uses native QBox exports
+- No GetCoreObject() usage (correct implementation)
+- Direct exports for player management
+- Proper notification system
 
-#### Languages
-- German (Deutsch)
-- English
-- French (Français)
-- Spanish (Español)
-- Polish (Polski)
-- Turkish (Türkçe)
+#### ESX Implementation
+- Dynamic import via getSharedObject()
+- No manual fxmanifest.lua edit required
+- Automatic fallback handling
+- ESX callback support
+
+#### Code Quality
+- Universal helper functions for all frameworks
+- Framework-specific optimizations
+- Extensive error handling
+- Clean, maintainable code structure
+
+### 📝 Configuration Options
+- Framework selection (auto/manual)
+- Language selection (6 languages)
+- Field location & radius
+- Tool type (durability/permanent)
+- Farming yields & cooldowns
+- Animation selection
+- Marker & blip customization
+- Security settings
+- Performance options
+
+### 📦 Files Included
+- `client.lua` - Client-side logic
+- `server.lua` - Server-side handling
+- `config.lua` - Configuration
+- `fxmanifest.lua` - Resource manifest
+- `locale.lua` - Locale system
+- `locales/` - 6 language files
+- `README.md` - Documentation
+- `LICENSE` - MIT License
+- `CHANGELOG.md` - This file
 
 ---
 
@@ -107,6 +117,11 @@ end
 
 ## Links
 
-- [GitHub Repository](https://github.com/yourusername/wheat_farm)
-- [Issues](https://github.com/yourusername/wheat_farm/issues)
-- [Pull Requests](https://github.com/yourusername/wheat_farm/pulls)
+- [GitHub Repository](https://github.com/henrymops89/hm_wheatfarm)
+- [Issues](https://github.com/henrymops89/hm_wheatfarm/issues)
+- [Releases](https://github.com/henrymops89/hm_wheatfarm/releases)
+- [Wiki](https://github.com/henrymops89/hm_wheatfarm/wiki)
+
+---
+
+[1.0.0]: https://github.com/henrymops89/hm_wheatfarm/releases/tag/v1.0.0

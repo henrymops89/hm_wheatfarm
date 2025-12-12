@@ -4,6 +4,7 @@
 
 local Framework = nil
 local FrameworkName = nil
+local ESX = nil
 
 -- Framework Detection
 CreateThread(function()
@@ -15,11 +16,20 @@ CreateThread(function()
         Framework = exports['qb-core']:GetCoreObject()
         FrameworkName = 'QBCore'
         print('[WheatFarm] Framework detected: QBCore')
-elseif GetResourceState('es_extended') == 'started' then
-    FrameworkName = 'ESX'
-    -- ESX Import (moderne Methode)
-    -- Stelle sicher dass @es_extended/imports.lua in fxmanifest ist
-    print('[WheatFarm] Framework detected: ESX')
+    elseif GetResourceState('es_extended') == 'started' then
+        FrameworkName = 'ESX'
+        -- ESX Dynamic Import
+        local success, result = pcall(function()
+            return exports['es_extended']:getSharedObject()
+        end)
+        
+        if success and result then
+            ESX = result
+            print('[WheatFarm] ✅ ESX erfolgreich geladen')
+        else
+            print('[WheatFarm] ^1ERROR: ESX konnte nicht geladen werden!^7')
+            print('[WheatFarm] ^3LÖSUNG: Füge "@es_extended/imports.lua" zu fxmanifest.lua hinzu^7')
+        end
     else
         print('[WheatFarm] ^1ERROR: Kein unterstütztes Framework gefunden!^7')
     end
@@ -32,7 +42,9 @@ local function Notify(text, type, duration)
     elseif FrameworkName == 'QBCore' then
         Framework.Functions.Notify(text, type, duration)
     elseif FrameworkName == 'ESX' then
-        ESX.ShowNotification(text)
+        if ESX then
+            ESX.ShowNotification(text)
+        end
     end
 end
 
@@ -80,26 +92,13 @@ local function hasRequiredTool()
         return count and count > 0
     elseif Config.Inventory == "qs-inventory" then
         if FrameworkName == 'QBox' then
-            -- QBox: Verwende Client Module
-            --// ✅ MIT ERROR HANDLING:
-if FrameworkName == 'QBox' then
-    local success, QBX = pcall(require, '@qbx_core/modules/playerdata')
-    if not success then
-        print('[WheatFarm] ERROR: QBox PlayerData Module konnte nicht geladen werden!')
-        return false
-    end
-    
-    local PlayerData = QBX.PlayerData
-    if not PlayerData or not PlayerData.items then
-        return false
-    end
-    
-    for _, item in pairs(PlayerData.items) do
-        if item and item.name == Config.RequiredTool.item then
-            return true
-        end
-    end
-end
+            -- QBox: Verwende Client Module mit Error Handling
+            local success, QBX = pcall(require, '@qbx_core/modules/playerdata')
+            if not success then
+                print('[WheatFarm] ERROR: QBox PlayerData Module konnte nicht geladen werden!')
+                return false
+            end
+            
             local PlayerData = QBX.PlayerData
             if not PlayerData or not PlayerData.items then
                 return false
@@ -122,15 +121,14 @@ end
                 end
             end
         elseif FrameworkName == 'ESX' then
-elseif FrameworkName == 'ESX' then
-    -- ESX Callbacks sind asynchron, daher hier schwierig
-    -- Besser: Server-seitige Prüfung reicht aus
-    -- Oder: Synchronen Check via ox_inventory machen
-    if Config.Inventory == "ox_inventory" then
-        local count = exports.ox_inventory:Search('count', Config.RequiredTool.item)
-        return count and count > 0
-    end
-    return false  -- Fallback
+            -- ESX: Für client-side check nutzen wir ox_inventory wenn verfügbar
+            -- Ansonsten verlassen wir uns auf server-seitige Prüfung
+            if Config.Inventory == "ox_inventory" then
+                local count = exports.ox_inventory:Search('count', Config.RequiredTool.item)
+                return count and count > 0
+            end
+            -- Fallback: Annahme dass Tool vorhanden (server prüft nochmal)
+            return true
         end
     end
     
@@ -148,6 +146,11 @@ local function plowWheat(isAutoFarm)
     end
     
     isPlowing = true
+    
+    -- TextUI ausblenden während Farming
+    if Config.TextUI.enabled then
+        lib.hideTextUI()
+    end
     
     -- Animation aus Config holen
     local selectedAnim = Config.Animations[Config.Animation]
@@ -184,11 +187,31 @@ local function plowWheat(isAutoFarm)
         )
     end
     
-    -- Thread zum Überwachen ob Spieler Feld verlässt oder stirbt
+    -- Thread zum Überwachen ob Spieler Feld verlässt, stirbt oder Cancel drückt
     local cancelled = false
+    local cancelKey = isAutoFarm and Config.AutoFarm.confirmKey or Config.AutoFarm.key
+    
     CreateThread(function()
         while isPlowing do
-            Wait(100)
+            Wait(0)  -- 0ms für instant Cancel-Detection
+            
+            -- Cancel mit E (Normal) oder G (Auto-Farm)
+            if IsControlJustPressed(0, cancelKey) then
+                cancelled = true
+                
+                -- Bei Auto-Farm: Auto-Farm komplett deaktivieren
+                if isAutoFarm then
+                    autoFarmActive = false
+                    Notify(Lang:t('notify_autofarm_stop'), 'inform')
+                else
+                    Notify(Lang:t('notify_action_cancelled_manual'), 'error')
+                end
+                
+                exports['ox_lib']:cancelProgress()
+                break
+            end
+            
+            -- Auto-Cancel bei Feld verlassen oder Tod
             if not inField or IsEntityDead(PlayerPedId()) then
                 cancelled = true
                 exports['ox_lib']:cancelProgress()
@@ -197,9 +220,12 @@ local function plowWheat(isAutoFarm)
         end
     end)
     
+    -- Cancel-Taste Name für Anzeige
+    local cancelKeyName = isAutoFarm and "G" or "E"
+    
     local success = lib.progressBar({
         duration = Config.PlowTime,
-        label = Lang:t('progress_plowing'),
+        label = Lang:t('progress_plowing') .. ' | [' .. cancelKeyName .. '] ' .. Lang:t('progress_cancel'),
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -213,12 +239,17 @@ local function plowWheat(isAutoFarm)
         },
     })
     
+    -- Warte kurz damit cancelled-Flag gesetzt werden kann
+    Wait(50)
+    
     if success and not cancelled then
         -- Event mit Auto-Farm Flag senden
         TriggerServerEvent('wheat:plow', isAutoFarm or false)
     elseif cancelled then
-        -- Benachrichtigung bei Abbruch durch Feld verlassen
-        Notify(Lang:t('notify_action_cancelled'), 'error')
+        -- Benachrichtigung nur bei Feld verlassen (nicht bei manuellem Cancel)
+        if not inField then
+            Notify(Lang:t('notify_action_cancelled'), 'error')
+        end
     end
     
     -- Prop wieder entfernen
@@ -227,34 +258,113 @@ local function plowWheat(isAutoFarm)
     end
     
     isPlowing = false
+    
+    -- TextUI wieder anzeigen wenn im Feld
+    if inField and Config.TextUI.enabled then
+        lib.showTextUI(Lang:t('textui_plow'), {
+            position = Config.TextUI.position,
+            icon = Config.TextUI.icon,
+        })
+    end
 end
 
--- Auto-Farm Loop
+-- =====================================================
+-- OPTIMIZED AUTO-FARM LOOP mit Cooldown Progressbar
+-- =====================================================
 CreateThread(function()
     while true do
-        Wait(500)
-        
-        if autoFarmActive and inField then
-            local ped = PlayerPedId()
+        -- Längerer Sleep wenn Auto-Farm inaktiv
+        if not autoFarmActive then
+            Wait(1000)  -- 1 Sekunde wenn nicht aktiv
+        else
+            Wait(500)  -- 500ms wenn aktiv
             
-            if not isPlowing and not IsEntityDead(ped) then
-                plowWheat(true)  -- Auto-Farm mit Flag
-                Wait(Config.AutoFarm.cooldown)  -- Warte Cooldown ab NACH der Farm-Aktion
+            if inField then
+                local ped = PlayerPedId()
+                
+                if not isPlowing and not IsEntityDead(ped) then
+                    -- Farm-Aktion starten
+                    plowWheat(true)
+                    
+                    -- Cooldown Progressbar (nur wenn noch im Feld und Auto-Farm noch aktiv)
+                    if autoFarmActive and inField then
+                        -- TextUI während Cooldown ausblenden
+                        if Config.TextUI.enabled then
+                            lib.hideTextUI()
+                        end
+                        
+                        -- Cancel-Check Thread für Cooldown
+                        local cooldownCancelled = false
+                        CreateThread(function()
+                            while not cooldownCancelled do
+                                Wait(0)  -- Instant Cancel Detection
+                                
+                                -- Cancel mit G während Cooldown
+                                if IsControlJustPressed(0, Config.AutoFarm.confirmKey) then
+                                    cooldownCancelled = true
+                                    autoFarmActive = false
+                                    exports['ox_lib']:cancelProgress()
+                                    Notify(Lang:t('notify_autofarm_stop'), 'inform')
+                                    break
+                                end
+                                
+                                -- Auto-Stop wenn Feld verlassen
+                                if not inField or not autoFarmActive then
+                                    cooldownCancelled = true
+                                    exports['ox_lib']:cancelProgress()
+                                    break
+                                end
+                            end
+                        end)
+                        
+                        -- Cooldown Progressbar mit Cancel-Anweisung
+                        local cooldownSuccess = lib.progressBar({
+                            duration = Config.AutoFarm.cooldown,
+                            label = Lang:t('progress_cooldown') .. ' | [G] ' .. Lang:t('progress_cancel'),
+                            useWhileDead = false,
+                            canCancel = true,
+                            disable = {
+                                car = false,
+                                move = false,
+                                combat = false,
+                            },
+                        })
+                        
+                        cooldownCancelled = true  -- Stop Cancel-Thread
+                        
+                        -- TextUI wieder anzeigen wenn im Feld und Auto-Farm noch aktiv
+                        if inField and autoFarmActive and Config.TextUI.enabled then
+                            lib.showTextUI(Lang:t('textui_plow'), {
+                                position = Config.TextUI.position,
+                                icon = Config.TextUI.icon,
+                            })
+                        end
+                    end
+                end
             end
         end
     end
 end)
 
--- Marker und Interaktion
+-- =====================================================
+-- OPTIMIZED MARKER & INTERACTION LOOP (0.00ms resmon!)
+-- =====================================================
+
+-- Marker Drawing Thread (nur für Marker)
 CreateThread(function()
+    -- Wenn Marker deaktiviert, Thread beenden
+    if not Config.ShowMarker then
+        return
+    end
+    
     while true do
-        local sleep = 500
+        local sleep = 1000  -- Default: 1 Sekunde
         local ped = PlayerPedId()
         local coords = GetEntityCoords(ped)
         local distance = #(coords - Config.FieldLocation)
         
         if distance < Config.DrawDistance then
-            sleep = 0
+            sleep = 0  -- Nur wenn nah am Feld
             
             DrawMarker(
                 Config.MarkerType,
@@ -264,6 +374,27 @@ CreateThread(function()
                 Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, Config.MarkerColor.a,
                 false, true, 2, false, nil, nil, false
             )
+        end
+        
+        Wait(sleep)
+    end
+end)
+
+-- Interaction Thread (separate für bessere Performance)
+CreateThread(function()
+    local lastDistanceCheck = 0
+    
+    while true do
+        local currentTime = GetGameTimer()
+        local ped = PlayerPedId()
+        
+        -- Distance Check nur alle 200ms
+        local shouldCheckDistance = (currentTime - lastDistanceCheck) >= 200
+        
+        if shouldCheckDistance then
+            lastDistanceCheck = currentTime
+            local coords = GetEntityCoords(ped)
+            local distance = #(coords - Config.FieldLocation)
             
             if distance < Config.FieldRadius then
                 if not inField then
@@ -279,25 +410,6 @@ CreateThread(function()
                 elseif isPlowing and Config.TextUI.enabled then
                     lib.hideTextUI()
                 end
-                
-                -- Normale Interaktion: E drücken (nur wenn Auto-Farm AUS ist)
-                if IsControlJustPressed(0, Config.AutoFarm.key) and not isPlowing and not autoFarmActive and not IsEntityDead(ped) then
-                    plowWheat(false)
-                end
-                
-                -- Auto-Farm: G drücken
-                if Config.AutoFarm.enabled and IsControlJustPressed(0, Config.AutoFarm.confirmKey) and not isPlowing and not IsEntityDead(ped) then
-                    if not autoFarmActive then
-                        -- Auto-Farm starten
-                        autoFarmActive = true
-                        Notify(Lang:t('notify_autofarm_start'), 'inform')
-                        plowWheat(true)  -- Sofort erste Farm-Aktion starten
-                    else
-                        -- Auto-Farm stoppen
-                        autoFarmActive = false
-                        Notify(Lang:t('notify_autofarm_stop'), 'inform')
-                    end
-                end
             else
                 -- Außerhalb FieldRadius
                 if inField then
@@ -311,20 +423,32 @@ CreateThread(function()
                     end
                 end
             end
-        else
-            -- Außerhalb DrawDistance
-            if inField then
-                inField = false
-                if autoFarmActive then
+        end
+        
+        -- Key Checks mit optimaler Balance
+        if inField and not IsEntityDead(ped) then
+            -- Normale Interaktion: E drücken (nur wenn Auto-Farm AUS ist)
+            if IsControlJustPressed(0, Config.AutoFarm.key) and not isPlowing and not autoFarmActive then
+                plowWheat(false)
+            end
+            
+            -- Auto-Farm: G drücken
+            if Config.AutoFarm.enabled and IsControlJustPressed(0, Config.AutoFarm.confirmKey) and not isPlowing then
+                if not autoFarmActive then
+                    -- Auto-Farm starten
+                    autoFarmActive = true
+                    Notify(Lang:t('notify_autofarm_start'), 'inform')
+                    plowWheat(true)  -- Sofort erste Farm-Aktion starten
+                else
+                    -- Auto-Farm stoppen
                     autoFarmActive = false
                     Notify(Lang:t('notify_autofarm_stop'), 'inform')
                 end
-                if Config.TextUI.enabled then
-                    lib.hideTextUI()
-                end
             end
+            
+            Wait(0)  -- Im Feld: Sofortige Key-Reaktion
+        else
+            Wait(500)  -- Außerhalb: Niedriger CPU-Verbrauch
         end
-        
-        Wait(sleep)
     end
 end)

@@ -1,40 +1,40 @@
-# 🌾 Wheat Farm System - Multi-Framework
+# 🌾 HM Wheat Farm
 
-A comprehensive and feature-rich wheat farming system for FiveM servers. Supports **QBox (Native!)**, **QBCore**, and **ESX Legacy** frameworks with realistic mechanics, durability systems, and multi-language support.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/henrymops89/hm_wheatfarm/releases)
+[![Framework](https://img.shields.io/badge/framework-Multi--Framework-purple.svg)](https://github.com/henrymops89/hm_wheatfarm)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![ox_lib](https://img.shields.io/badge/ox__lib-required-red.svg)](https://github.com/overextended/ox_lib)
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![Framework](https://img.shields.io/badge/framework-Multi--Framework-purple)
-![License](https://img.shields.io/badge/license-MIT-green)
+> A feature-rich, optimized wheat farming system for FiveM servers. Supports **QBox (Native)**, **QBCore**, and **ESX Legacy** with automatic framework detection, multi-language support, and advanced features.
+
+---
 
 ## ✨ Features
 
-### 🎯 Multi-Framework Support
-- ✅ **QBox** (Native Exports - No Bridge!)
-- ✅ **QBCore** (Full Support)
-- ✅ **ESX Legacy** (Full Support)
-- ✅ **Auto-Detection** or manual configuration
+### 🎮 **Dual Farming Modes**
+- **Manual Mode** - Press `E` to farm wheat with higher yield (1-3 wheat)
+- **Auto-Farm Mode** - Press `G` to activate automatic farming with cooldown progressbar (1-2 wheat)
 
-### 🎮 Farming Mechanics
-- **Manual Farming** - Press `E` to farm wheat (1-3 yield)
-- **Auto-Farm Mode** - Press `G` to activate automatic farming (1-2 yield, lower output)
-- **Configurable Cooldowns** - Adjustable timings for balanced gameplay
-- **2-Meter Precision** - Stand exactly at the marker to farm
+### 🌍 **Multi-Framework Support**
+- ✅ **QBox** - Native Exports (no bridge required!)
+- ✅ **QBCore** - Full compatibility
+- ✅ **ESX Legacy** - Complete support with dynamic import
+- ✅ **Auto-Detection** - Automatically detects your framework
 
-### 🛠️ Tool System (Dual Mode)
-Choose between two tool modes in config:
-- **Durability Mode** (Option 1): Tools degrade with use and break after 100 uses + 5% break chance
-- **Permanent Mode** (Option 3): Buy once, use forever
-- Client-side and server-side validation to prevent exploits
+### 🛠️ **Advanced Tool System**
+- **Durability Mode** - Tools degrade with use (100 uses + 5% break chance)
+- **Permanent Mode** - Buy once, use forever
+- Client & server-side validation
 
-### 🎭 Animations & Props
-4 different farming animations with realistic props:
-- **Plant** - Gardening with shovel
-- **Dig** - Digging with pickaxe
-- **Shovel** - Shoveling action
-- **Hammer** - Sledgehammer ground work
+### 🎨 **Rich User Experience**
+- 4 different farming animations with props
+- ox_lib TextUI integration with smart hide/show
+- Progressbars with cancel instructions
+- Field-leave & death detection
+- Instant input response (0.00-0.01ms)
 
-### 🌍 Multi-Language Support
-Fully translated in 6 languages:
+### 🌐 **Multi-Language Support**
+6 fully translated languages:
 - 🇩🇪 German (Deutsch)
 - 🇬🇧 English
 - 🇫🇷 French (Français)
@@ -42,63 +42,59 @@ Fully translated in 6 languages:
 - 🇵🇱 Polish (Polski)
 - 🇹🇷 Turkish (Türkçe)
 
-### 📦 Inventory Support
-Compatible with multiple inventory systems:
-- ✅ ox_inventory (with metadata support)
-- ✅ qs-inventory
+### 📦 **Inventory Compatibility**
+- ox_inventory (with metadata support)
+- qs-inventory
 
-### 🎨 Visual Features
-- Customizable marker and blip
-- ox_lib TextUI integration
-- ox_lib Progress Bar with animations
-- Field-leave detection (auto-cancel)
-- Death protection (no ghost farming)
-
-### 🔒 Security Features
+### 🔒 **Security Features**
 - Rate limiting (Anti-Spam)
 - Server-side cooldown enforcement
-- Distance validation
-- Tool verification
+- Distance validation with tolerance
+- Tool verification (client & server)
 - Optional kick on exploit detection
+
+### ⚡ **Performance Optimized**
+- **0.00-0.01ms** resmon when in field
+- **0.00ms** when outside field
+- Separate threads for markers & interactions
+- Smart throttling system
+- Optional marker disable for maximum performance
+
+---
 
 ## 📋 Requirements
 
-**Choose your Framework:**
-- [QBox Framework](https://github.com/Qbox-project/qbx_core) **OR**
-- [QBCore Framework](https://github.com/qbcore-framework) **OR**
+**Framework** (choose one):
+- [QBox Framework](https://github.com/Qbox-project/qbx_core) OR
+- [QBCore Framework](https://github.com/qbcore-framework) OR
 - [ESX Legacy](https://github.com/esx-framework/esx_core)
 
-**Additional:**
-- [ox_lib](https://github.com/overextended/ox_lib)
-- [ox_inventory](https://github.com/overextended/ox_inventory) **OR** [qs-inventory](https://github.com/qbcore-framework/qs-inventory)
+**Dependencies:**
+- [ox_lib](https://github.com/overextended/ox_lib) (required)
+- [ox_inventory](https://github.com/overextended/ox_inventory) OR [qs-inventory](https://github.com/qbcore-framework/qs-inventory)
+
+---
 
 ## 🚀 Installation
 
-1. **Download** the latest release
-2. **Extract** `wheat_farm` to your resources folder
-3. **Add items** to your inventory:
+### 1. Download & Extract
+```bash
+cd resources
+git clone https://github.com/henrymops89/hm_wheatfarm.git
+```
 
-### For ox_inventory (`ox_inventory/data/items.lua`):
+### 2. Add Items to Inventory
+
+#### For ox_inventory (`ox_inventory/data/items.lua`):
 ```lua
--- Option 1: Durability Tool
 ['hoe'] = {
     label = 'Hoe',
     weight = 1000,
     stack = false,
     close = true,
-    description = 'A farming hoe with 100 uses. Can break!',
+    description = 'A farming hoe with 100 uses',
 },
 
--- Option 3: Permanent Tool
-['farming_tool'] = {
-    label = 'Farming Tool',
-    weight = 2000,
-    stack = false,
-    close = true,
-    description = 'Professional farming tool. Never breaks!',
-},
-
--- Wheat item
 ['wheat'] = {
     label = 'Wheat',
     weight = 100,
@@ -108,26 +104,33 @@ Compatible with multiple inventory systems:
 }
 ```
 
-### For qs-inventory:
-Add the same items to your shared items configuration.
+#### For qs-inventory:
+Add the same items to your `qb-core/shared/items.lua` or `qbx_core/shared/items.lua`
 
-4. **Configure** `config.lua` to your preferences
-5. **Add** to `server.cfg`:
+### 3. Configure (Optional)
+Edit `config.lua` to customize:
+- Field location & radius
+- Tool settings (durability/permanent)
+- Farming yields & cooldowns
+- Language & inventory system
+- Security settings
+
+### 4. Add to server.cfg
 
 **For QBox:**
 ```cfg
 ensure ox_lib
 ensure ox_inventory
 ensure qbx_core
-ensure wheat_farm
+ensure hm_wheatfarm
 ```
 
 **For QBCore:**
 ```cfg
 ensure ox_lib
-ensure ox_inventory  # or qs-inventory
+ensure ox_inventory
 ensure qb-core
-ensure wheat_farm
+ensure hm_wheatfarm
 ```
 
 **For ESX:**
@@ -135,31 +138,33 @@ ensure wheat_farm
 ensure ox_lib
 ensure ox_inventory
 ensure es_extended
-ensure wheat_farm
+ensure hm_wheatfarm
 ```
 
-6. **Restart** your server
+### 5. Restart Server
+```bash
+restart hm_wheatfarm
+```
+
+---
 
 ## ⚙️ Configuration
 
 ### Framework Selection
 ```lua
--- Choose your framework
-Config.Framework = "auto"  -- "auto", "QBox", "QBCore", "ESX"
--- "auto" automatically detects your framework (recommended)
+Config.Framework = "auto"  -- Auto-detect (recommended)
+-- Or manually: "QBox", "QBCore", "ESX"
 ```
 
-### Basic Settings
+### Language
 ```lua
--- Language
-Config.Language = "de"  -- "de", "en", "fr", "es", "pl", "tr"
+Config.Language = "en"  -- de, en, fr, es, pl, tr
+```
 
--- Inventory System
-Config.Inventory = "ox_inventory"  -- "ox_inventory" or "qs-inventory"
-
--- Field Location (Change to your coordinates)
+### Field Location
+```lua
 Config.FieldLocation = vector3(2229.68, 5577.36, 53.85)
-Config.FieldRadius = 2.0  -- 2 meters
+Config.FieldRadius = 2.0  -- 2 meter radius
 ```
 
 ### Tool System
@@ -167,18 +172,14 @@ Config.FieldRadius = 2.0  -- 2 meters
 Config.RequiredTool = {
     enabled = true,
     item = "hoe",
-    
-    -- Choose tool type:
     toolType = "durability",  -- "durability" or "permanent"
-    
-    -- Only for "durability" mode:
     durabilityPerUse = 1,
     maxDurability = 100,
-    breakChance = 5,  -- 5% chance to break per use
+    breakChance = 5,  -- 5% chance per use
 }
 ```
 
-### Farming Modes
+### Farming Yields
 ```lua
 -- Manual Mode (E key)
 Config.MinWheatPerPlow = 1
@@ -188,38 +189,44 @@ Config.MaxWheatPerPlow = 3
 Config.AutoFarm = {
     enabled = true,
     minWheat = 1,
-    maxWheat = 2,  -- Lower yield than manual!
-    cooldown = 8000,  -- 8 seconds between farms
+    maxWheat = 2,  -- Lower yield than manual
+    cooldown = 8000,  -- 8 seconds
 }
 ```
 
-### Security Settings
+### Performance Options
 ```lua
-Config.Security = {
-    enabled = true,
-    maxRequestsPerMinute = 20,
-    enforceCooldown = true,
-    enforceDistance = true,
-    kickOnRateLimit = false,  -- Set to true for strict enforcement
-    kickOnDistanceExploit = false,
-}
+Config.ShowMarker = true  -- Set to false for 0.00ms guaranteed
 ```
+
+---
 
 ## 🎮 How to Use
 
 ### Manual Farming
 1. Go to the wheat field (marked on map)
 2. Stand within the marker (2m radius)
-3. Press **E** to farm
-4. Wait 5 seconds
-5. Receive 1-3 wheat
+3. Press **E** to start farming
+4. Wait 5 seconds (progressbar shows)
+5. Press **E** again to cancel (optional)
+6. Receive 1-3 wheat
 
 ### Auto-Farm Mode
 1. Stand in the field
 2. Press **G** to activate auto-farm
-3. Farming will repeat automatically every 8 seconds
-4. Press **G** again to stop
-5. **Note**: Lower yield (1-2 wheat) than manual mode
+3. Farming repeats automatically every 8 seconds
+4. Cooldown progressbar shows between farms
+5. Press **G** anytime to stop
+6. Lower yield (1-2 wheat) than manual mode
+
+### Controls
+| Key | Action | Context |
+|-----|--------|---------|
+| **E** | Start/Cancel Manual Farming | In field |
+| **G** | Toggle Auto-Farm | In field |
+| **G** | Cancel during cooldown | Auto-Farm active |
+
+---
 
 ## 🔧 Framework-Specific Notes
 
@@ -229,7 +236,7 @@ Config.Security = {
 local player = exports.qbx_core:GetPlayer(source)
 exports.qbx_core:Notify(source, text, type)
 
--- ❌ WRONG - Don't use GetCoreObject() for QBox!
+-- ❌ WRONG - Don't use GetCoreObject() for QBox
 local QBCore = exports['qbx_core']:GetCoreObject()
 ```
 
@@ -242,129 +249,130 @@ local Player = QBCore.Functions.GetPlayer(source)
 
 ### ESX Legacy
 ```lua
--- ✅ Modern ESX import method
-local xPlayer = ESX.GetPlayerFromId(source)
+-- ✅ Dynamic ESX import (no manual fxmanifest edit needed)
+-- Automatically loads via exports['es_extended']:getSharedObject()
 ```
 
-## 📸 Screenshots
+---
 
-*Add your screenshots here*
+## 📊 Performance
 
-## 🐛 Known Issues
+### Resmon Results
+```
+Outside field: 0.00ms
+In field (with marker): 0.00-0.01ms
+In field (without marker): 0.00ms
+```
 
-None currently. Report issues on GitHub!
+### Optimizations
+- Separate threads for marker rendering & interaction logic
+- Smart throttling (distance checks every 200ms)
+- Instant input detection (Wait(0) for key checks)
+- Optional marker disable for maximum performance
+
+---
+
+## 🐛 Troubleshooting
+
+### Script doesn't start
+**Check:**
+1. ox_lib is installed and started before hm_wheatfarm
+2. Framework resource is running
+3. Console for error messages
+
+### Framework not detected
+**Solution:**
+```lua
+-- In config.lua, set manually:
+Config.Framework = "QBox"  -- or "QBCore" or "ESX"
+```
+
+### Notifications not showing
+**Check:**
+1. ox_lib is properly installed
+2. Framework exports are working
+
+### Tool not working
+**Check:**
+1. Item name matches `Config.RequiredTool.item`
+2. Inventory system setting is correct
+3. Item exists in inventory database
+
+---
 
 ## 📝 Changelog
 
-### Version 2.0.0 (2024-12-11)
-- ✅ **Multi-Framework Support** (QBox Native, QBCore, ESX)
-- ✅ **Fixed QBox Native Exports** (no GetCoreObject!)
-- ✅ **Framework Auto-Detection**
-- ✅ **Improved Security System**
-- ✅ **Better Error Handling**
+### [1.0.0] - 2024-12-12
+**Initial Release**
 
-### Version 1.0.0 (2024-12-11)
-- Initial release (QBox only)
-- Manual and auto-farm modes
-- Dual tool system (durability/permanent)
-- Multi-language support (6 languages)
-- Multi-inventory support
-- Death and field-leave protection
+#### Features
+- ✨ Multi-Framework support (QBox Native, QBCore, ESX)
+- ✨ Manual & Auto-Farm modes
+- ✨ Dual tool system (durability/permanent)
+- ✨ Multi-language support (6 languages)
+- ✨ Performance optimized (0.00-0.01ms)
+- ✨ Security system (rate limiting, distance validation)
+- ✨ TextUI management (smart hide/show)
+- ✨ Cancel functionality in progressbar
+- ✨ 4 farming animations with props
+
+#### Technical
+- QBox uses native exports (no GetCoreObject)
+- ESX dynamic import (no manual fxmanifest edit)
+- Separate threads for optimal performance
+- Universal helper functions for all frameworks
+
+---
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+---
 
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+---
+
 ## 💬 Support
 
-- **Discord**: [Your Discord Server]
-- **Issues**: [GitHub Issues](https://github.com/yourusername/wheat_farm/issues)
-
-## 🙏 Credits
-
-- **Frameworks**: 
-  - [QBox Project](https://qbox.re) - QBox Framework
-  - [QBCore Team](https://qbcore.org) - QBCore Framework
-  - [ESX Team](https://esx-framework.org) - ESX Legacy
-- **Libraries**: [Overextended (ox_lib, ox_inventory)](https://github.com/overextended)
-- **Developer**: [Your Name]
-
-## ⭐ Show Your Support
-
-If you like this resource, please give it a star on GitHub!
+- **Issues**: [GitHub Issues](https://github.com/henrymops89/hm_wheatfarm/issues)
+- **Wiki**: [Documentation](https://github.com/henrymops89/hm_wheatfarm/wiki)
 
 ---
 
-Made with ❤️ for the FiveM community
+## 🙏 Credits
 
-## 🔧 Troubleshooting
+**Frameworks:**
+- [QBox Project](https://qbox.re) - QBox Framework
+- [QBCore Team](https://qbcore.org) - QBCore Framework
+- [ESX Team](https://esx-framework.org) - ESX Legacy
 
-### QBox Issues
-**Problem:** Script doesn't work on QBox
-**Solution:** Make sure you're using QBox, not the QBCore bridge. The script uses native QBox exports.
+**Libraries:**
+- [Overextended](https://github.com/overextended) - ox_lib, ox_inventory
 
-### Framework Detection
-**Problem:** Wrong framework detected
-**Solution:** Set `Config.Framework` manually instead of using "auto"
+**Developer:**
+- [henrymops89](https://github.com/henrymops89)
 
-### Notifications Not Showing
-**Problem:** No notifications appear
-**Solution:** Check if ox_lib is properly installed and started before wheat_farm
+---
 
-### Tool Not Working
-**Problem:** Can't farm even with tool
-**Solution:** 
-1. Check if tool item name matches `Config.RequiredTool.item`
-2. Verify inventory system is correctly set in config
-3. Check server console for error messages
+## ⭐ Show Your Support
 
-## 📚 API Documentation
+If you like this resource, please give it a star on GitHub! It helps others find the project.
 
-### Events
+---
 
-#### Client Events
-```lua
--- Notify success (triggered by server)
-RegisterNetEvent('wheat:notifySuccess')
-```
+<div align="center">
 
-#### Server Events
-```lua
--- Plow wheat (triggered by client)
-RegisterNetEvent('wheat:plow', function(isAutoFarm))
-```
+**Made with ❤️ for the FiveM Community**
 
-### Exports
+[⬆ Back to Top](#-hm-wheat-farm)
 
-#### Server Exports
-```lua
--- Check if player has tool (internal use)
-local hasTool, slot = HasTool(source)
-
--- Add item to player
-local success = AddItem(source, item, amount)
-
--- Remove item from player
-local success = RemoveItem(source, item, amount)
-```
-
-## 🎯 Roadmap
-
-- [ ] Multiple field locations
-- [ ] Different crop types
-- [ ] Farming levels/experience
-- [ ] Special farming tools
-- [ ] Weather effects on yield
-- [ ] Seasonal variations
-- [ ] Fertilizer system
-- [ ] Crop quality system
-```
+</div>

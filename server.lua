@@ -4,6 +4,7 @@
 
 local Framework = nil
 local FrameworkName = nil
+local ESX = nil
 
 -- Framework Detection
 CreateThread(function()
@@ -15,10 +16,20 @@ CreateThread(function()
         Framework = exports['qb-core']:GetCoreObject()
         FrameworkName = 'QBCore'
         print('[WheatFarm] Framework detected: QBCore')
-elseif GetResourceState('es_extended') == 'started' then
-    FrameworkName = 'ESX'
-    -- ESX wird über shared_script '@es_extended/imports.lua' verfügbar
-    print('[WheatFarm] Framework detected: ESX')
+    elseif GetResourceState('es_extended') == 'started' then
+        FrameworkName = 'ESX'
+        -- ESX Dynamic Import
+        local success, result = pcall(function()
+            return exports['es_extended']:getSharedObject()
+        end)
+        
+        if success and result then
+            ESX = result
+            print('[WheatFarm] ✅ ESX erfolgreich geladen')
+        else
+            print('[WheatFarm] ^1ERROR: ESX konnte nicht geladen werden!^7')
+            print('[WheatFarm] ^3LÖSUNG: Füge "@es_extended/imports.lua" zu fxmanifest.lua hinzu^7')
+        end
     else
         print('[WheatFarm] ^1ERROR: Kein unterstütztes Framework gefunden!^7')
     end
@@ -170,10 +181,12 @@ local function AddItem(source, item, amount)
                 return Player.Functions.AddItem(item, amount)
             end
         elseif FrameworkName == 'ESX' then
-            local xPlayer = ESX.GetPlayerFromId(source)
-            if xPlayer then
-                xPlayer.addInventoryItem(item, amount)
-                return true
+            if ESX then
+                local xPlayer = ESX.GetPlayerFromId(source)
+                if xPlayer then
+                    xPlayer.addInventoryItem(item, amount)
+                    return true
+                end
             end
         end
     end
@@ -195,10 +208,12 @@ local function RemoveItem(source, item, amount)
                 return Player.Functions.RemoveItem(item, amount)
             end
         elseif FrameworkName == 'ESX' then
-            local xPlayer = ESX.GetPlayerFromId(source)
-            if xPlayer then
-                xPlayer.removeInventoryItem(item, amount)
-                return true
+            if ESX then
+                local xPlayer = ESX.GetPlayerFromId(source)
+                if xPlayer then
+                    xPlayer.removeInventoryItem(item, amount)
+                    return true
+                end
             end
         end
     end
@@ -274,14 +289,16 @@ local function HasTool(source)
                 return true, nil
             end
         elseif FrameworkName == 'ESX' then
-            local xPlayer = ESX.GetPlayerFromId(source)
-            if not xPlayer then
-                return false, nil
-            end
-            
-            local item = xPlayer.getInventoryItem(Config.RequiredTool.item)
-            if item and item.count > 0 then
-                return true, nil
+            if ESX then
+                local xPlayer = ESX.GetPlayerFromId(source)
+                if not xPlayer then
+                    return false, nil
+                end
+                
+                local item = xPlayer.getInventoryItem(Config.RequiredTool.item)
+                if item and item.count > 0 then
+                    return true, nil
+                end
             end
         end
     end
@@ -414,9 +431,9 @@ RegisterNetEvent('wheat:plow', function(isAutoFarm)
 end)
 
 -- =====================================================
--- ESX Callback für hasItem Check
+-- ESX Callback für hasItem Check (nur wenn ESX geladen)
 -- =====================================================
-if FrameworkName == 'ESX' then
+if FrameworkName == 'ESX' and ESX then
     ESX.RegisterServerCallback('wheat:hasItem', function(source, cb, itemName)
         local xPlayer = ESX.GetPlayerFromId(source)
         if not xPlayer then

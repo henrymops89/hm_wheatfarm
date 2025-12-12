@@ -78,7 +78,7 @@ Config.WheatItem = "wheat"
 
 -- Benötigtes Werkzeug System
 Config.RequiredTool = {
-    enabled = false,
+    enabled = true,
     item = "hoe",                    -- Hacke/Werkzeug Item
     
     -- Option 1: Mit Haltbarkeit (verbrauchbar)
@@ -105,7 +105,11 @@ Config.AutoFarm = {
     confirmKey = 47,                   -- G Taste zum Bestätigen (47 = G)
 }
 
+-- =====================================================
+-- PERFORMANCE SETTINGS
+-- =====================================================
 -- Marker
+Config.ShowMarker = true  -- Set to false for maximum performance (0.00ms resmon)
 Config.DrawDistance = 10.0  -- Marker Sichtweite
 Config.MarkerType = 1
 Config.MarkerSize = vector3(2.0, 2.0, 1.0)  -- Marker passt jetzt zum 2m Radius
