@@ -3,39 +3,63 @@ game 'gta5'
 lua54 'yes'
 
 author 'henrymops89'
-description 'HM Wheat Farm - Multi-Framework Wheat Farming System'
-version '1.0.1'
+description 'HM Wheat Farm - Multi-Framework Economic System (FIXED v2.0.1)'
+version '2.0.1'
+
+-- =====================================================
+-- SHARED SCRIPTS (FIXED LOADING ORDER - BUG #3, #9)
+-- =====================================================
 
 shared_scripts {
-    -- ⚠️ ESX USERS ONLY: Uncomment the line below if using ESX Legacy!
-    -- '@es_extended/imports.lua',
     '@ox_lib/init.lua',
     'config.lua',
+    'bridge.lua',
+    
+    -- ✅ FIXED: Load locale files BEFORE main.lua (BUG #3, #9)
+    -- Change 'de' to your language: de, en, fr, es, pl, tr
+    'locales/de.lua',  
     'locale.lua'
 }
 
-files {
-    'locales/*.lua'
-}
+-- =====================================================
+-- CLIENT SCRIPTS (Modular)
+-- =====================================================
 
 client_scripts {
-    'client.lua'
+    'client/utils.lua',     -- ✅ Utils FIRST (contains Notify, etc.)
+    'client/main.lua',      -- Initialization
+    'client/blips.lua',     -- Blip Management
+    'client/farming.lua',   -- Farm System
+    'client/mill.lua',      -- Mill System
+    'client/processor.lua', -- Processor System
+    'client/bakery.lua',    -- Bakery System
+    'client/restaurant.lua' -- Restaurant System
 }
+
+-- =====================================================
+-- SERVER SCRIPTS (Modular)
+-- =====================================================
 
 server_scripts {
-    'server.lua'
+    'server/utils.lua',     -- ✅ Utils FIRST (needed by others)
+    'server/security.lua',  -- Security SECOND (needed by events)
+    'server/main.lua',      -- Initialization
+    'server/farming.lua',   -- Farm Events
+    'server/mill.lua',      -- Mill Events
+    'server/processor.lua', -- Processor Events
+    'server/bakery.lua',    -- Bakery Events
+    'server/restaurant.lua' -- Restaurant Events
 }
 
--- Dependencies (at least one framework required)
+-- =====================================================
+-- DEPENDENCIES
+-- =====================================================
+
 dependencies {
     'ox_lib',
+    -- ONE framework required (auto-detected):
+    -- 'qbx_core' OR 'qb-core' OR 'es_extended'
+    
+    -- ONE inventory required (auto-detected):
+    -- 'ox_inventory' OR 'qb-inventory'
 }
-
--- At least one framework required (choose one):
--- - qbx_core (for QBox)
--- - qb-core (for QBCore)
--- - es_extended (for ESX Legacy)
-
--- At least one inventory required (choose one):
--- - ox_inventory (recommended)
--- - qs-inventory

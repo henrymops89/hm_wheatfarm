@@ -1,31 +1,49 @@
-local Translations = {
-    -- Blip
-    blip_name = "Wheat Field",
+-- English Locale (en)
+return {
+    -- Farming
+    harvest_wheat = 'Harvest Wheat',
+    harvesting = 'Harvesting...',
+    harvest_success = 'You harvested %dx %s!',
+    harvest_failed = 'Harvest failed!',
     
-    -- TextUI
-    textui_plow = "[E] Plow Wheat | [G] Auto-Farm",
+    -- Tools
+    notify_no_tool = 'You need a tool!',
+    notify_tool_broken = 'Your tool broke!',
+    notify_tool_damaged = 'Your tool is damaged (%d%%)!',
     
-    -- Progress Bar
-    progress_plowing = "Plowing wheat...",
-    progress_cooldown = "Waiting for next harvest...",
-    progress_cancel = "Cancel",
+    -- Mill
+    mill_not_enough_wheat = 'You need at least %dx wheat!',
+    mill_processing = 'Processing wheat...',
+    mill_success = 'You produced %dx flour!',
+    not_in_mill = 'You are not at the mill!',
+    process_wheat = 'Process Wheat',
     
-    -- Notifications
-    notify_success = "You plowed %dx wheat! 🌾",
-    notify_autofarm_start = "Auto-Farm activated! (Less yield)",
-    notify_autofarm_stop = "Auto-Farm deactivated!",
-    notify_action_cancelled = "Action cancelled - Left field!",
-    notify_action_cancelled_manual = "Action cancelled!",
-    notify_no_tool = "You need a hoe to farm!",
-    notify_tool_broken = "Your hoe broke! 💔",
-    notify_tool_damaged = "Your hoe took damage (%d%% durability)",
-    notify_cooldown = "Please wait a moment! ⏱️",
+    -- Bakery
+    bakery_no_flour = 'You have no flour!',
+    bakery_invalid_amount = 'Invalid amount!',
+    bakery_success = 'You sold %dx flour for $%d! ($%d per unit)',
     
-    -- Logging
-    log_plow = "[WheatFarm] Player %s plowed %dx wheat"
+    -- Processor
+    processor_not_enough_potato = 'You need at least %dx potatoes!',
+    processor_processing = 'Processing potatoes...',
+    processor_success = 'You produced %dx fries!',
+    not_in_processor = 'You are not at the processor!',
+    process_potato = 'Process Potatoes',
+    
+    -- Restaurant
+    restaurant_no_fries = 'You have no fries!',
+    restaurant_invalid_amount = 'Invalid amount!',
+    restaurant_success = 'You sold %dx fries for $%d! ($%d per unit)',
+    
+    -- General
+    notify_cooldown = 'Please wait a moment!',
+    notify_too_far = 'You are too far away!',
+    inventory_full = 'Your inventory is full!',
+    
+    -- UI
+    farm_blip = 'Wheat Farm',
+    mill_blip = 'Mill',
+    bakery_blip = 'Bakery',
+    processor_blip = 'Fries Stand',
+    restaurant_blip = 'Fast-Food Restaurant',
 }
-
-Lang = Locale:new({
-    phrases = Translations,
-    warnOnMissing = true
-})
