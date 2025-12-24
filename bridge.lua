@@ -59,22 +59,22 @@ CreateThread(function()
         Inventory.name = 'ox_inventory' -- Fallback
     end
     
-end
-
-if GetResourceState('ox_target') == 'started' then
-    Config.TargetSystem = 'ox_target'
-    print('[WheatFarm] ✅ Target: ox_target')
-elseif GetResourceState('qb-target') == 'started' then
-    Config.TargetSystem = 'qb-target'
-    print('[WheatFarm] ✅ Target: qb-target')
-else
-    Config.TargetSystem = '3dtext'
-    print('[WheatFarm] ⚠️ Target: Fallback zu 3dtext')
-
-            print('[WheatFarm] =====================================')
+    -- ✅ Target System Detection (INNERHALB des Threads!)
+    if GetResourceState('ox_target') == 'started' then
+        Config.TargetSystem = 'ox_target'
+        print('[WheatFarm] ✅ Target: ox_target')
+    elseif GetResourceState('qb-target') == 'started' then
+        Config.TargetSystem = 'qb-target'
+        print('[WheatFarm] ✅ Target: qb-target')
+    else
+        Config.TargetSystem = '3dtext'
+        print('[WheatFarm] ⚠️ Target: Fallback zu 3dtext')
+    end
+    
+    print('[WheatFarm] =====================================')
     print('[WheatFarm] Bridge Initialized Successfully!')
     print('[WheatFarm] =====================================')
-end)
+end)  -- ✅ Hier fehlt das end)!
 
 -- =====================================================
 -- PLAYER FUNCTIONS
@@ -399,6 +399,5 @@ else
     exports('GetInventoryName', GetInventoryName)
     exports('GetItemCountClient', GetItemCountClient)
 end
-
 
 print('[WheatFarm] Bridge module loaded!')
