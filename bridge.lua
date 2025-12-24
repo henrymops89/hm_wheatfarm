@@ -59,7 +59,19 @@ CreateThread(function()
         Inventory.name = 'ox_inventory' -- Fallback
     end
     
-    print('[WheatFarm] =====================================')
+end
+
+if GetResourceState('ox_target') == 'started' then
+    Config.TargetSystem = 'ox_target'
+    print('[WheatFarm] ✅ Target: ox_target')
+elseif GetResourceState('qb-target') == 'started' then
+    Config.TargetSystem = 'qb-target'
+    print('[WheatFarm] ✅ Target: qb-target')
+else
+    Config.TargetSystem = '3dtext'
+    print('[WheatFarm] ⚠️ Target: Fallback zu 3dtext')
+
+            print('[WheatFarm] =====================================')
     print('[WheatFarm] Bridge Initialized Successfully!')
     print('[WheatFarm] =====================================')
 end)
@@ -387,5 +399,6 @@ else
     exports('GetInventoryName', GetInventoryName)
     exports('GetItemCountClient', GetItemCountClient)
 end
+
 
 print('[WheatFarm] Bridge module loaded!')
