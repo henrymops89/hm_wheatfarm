@@ -200,7 +200,7 @@ Config.Mill = {
         blockevents = true,
     },
     
-    interactionType = "ox_target",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
     
     text3d = {
         text = "[E] Weizen verarbeiten",
@@ -256,7 +256,7 @@ Config.Bakery = {
         blockevents = true,
     },
     
-    interactionType = "ox_target",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
     
     text3d = {
         text = "[E] Mehl verkaufen",
@@ -325,7 +325,7 @@ Config.Processor = {
         blockevents = true,
     },
     
-    interactionType = "ox_target",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
     
     text3d = {
         text = "[E] Kartoffeln verarbeiten",
@@ -382,7 +382,7 @@ Config.Restaurant = {
         blockevents = true,
     },
     
-    interactionType = "3dtext",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
     
     text3d = {
         text = "[E] Pommes verkaufen",
@@ -424,3 +424,4 @@ Config.Security = {
     logSuspiciousActivity = true,
 
 }
+
