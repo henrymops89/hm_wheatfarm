@@ -89,7 +89,7 @@ CreateThread(function()
                         {
                             name = 'wheat_mill',
                             icon = Config.Mill.target.icon or 'fa-solid fa-wheat-awn',
-                            label = Lang:t('mill_target_label'),  -- ✅ Uses Locale
+                            label = Lang:t('mill_target_label'),
                             distance = Config.Mill.target.distance or 3.0,
                             onSelect = function()
                                 ProcessMill()
@@ -103,7 +103,7 @@ CreateThread(function()
                         options = {
                             {
                                 icon = Config.Mill.target.icon or 'fa-solid fa-wheat-awn',
-                                label = Lang:t('mill_target_label'),  -- ✅ Uses Locale
+                                label = Lang:t('mill_target_label'),
                                 action = function()
                                     ProcessMill()
                                 end
@@ -155,8 +155,8 @@ CreateThread(function()
     end
     
     function point:nearby()
-        -- Draw 3D text if enabled
-        if Config.Mill.interactionType == '3dtext' and Config.Mill.text3d then
+        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
+        if Config.Mill.interactionType == '3dtext' and Config.Mill.text3d and Config.Mill.text3d.show3DText ~= false then
             if millPed and DoesEntityExist(millPed) then
                 local pedCoords = GetEntityCoords(millPed)
                 local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
