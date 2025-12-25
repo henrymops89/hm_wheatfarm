@@ -366,7 +366,7 @@ Config.Restaurant = {
     dynamicPricing = {
         enabled = true,
         peakHourMultiplier = 1.3,
-        peakHours = {11, 12, 13, 17, 18, 19, 20},
+        peakHours = {10, 12, 13, 17, 18, 19, 20},
     },
     
     ped = {
