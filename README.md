@@ -8,6 +8,8 @@
 [![License](https://img.shields.io/badge/license-Custom-red)](LICENSE)
 
 ---
+## 🎉 VERSION 2.2.1 -
+- Replace all Hardcoded Language Files into the locales Folder
 
 ## 🎉 VERSION 2.1.1 -
 **NEW**🔥 Peak Hours Display
