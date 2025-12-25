@@ -1,172 +1,140 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to HM Wheat Farm will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [1.0.1] - 2024-12-12
+## [2.1.0] - 2024-12-25
 
 ### ✨ Added
-- **qs-inventory Support**
-  - Full compatibility with Quasar Advanced Inventory
-  - Universal inventory functions work with both ox_inventory and qs-inventory
-  - Automatic detection and handling of different metadata structures
-  - Durability system works with both `metadata.durability` (ox) and `info.quality` (qs)
-  
-- **Inventory Auto-Detection**
-  - `Config.Inventory = "auto"` automatically detects installed inventory system
-  - Checks for ox_inventory first, then qs-inventory
-  - Fallback to ox_inventory if neither found
-  - Console output shows detected system
-  
-### 📚 Documentation
-- Added QS_INVENTORY_SUPPORT.md with complete setup guide
-- Added LEARNED_QS_INVENTORY.md with all qs-inventory exports and commands
-- Updated README.md with qs-inventory configuration
-- Added comparison between ox_inventory and qs-inventory
-- Included troubleshooting section for qs-inventory
+- **Modular Bridge Architecture**: Completely rewritten bridge system split into:
+  - `bridge/framework.lua` - Framework detection and integration
+  - `bridge/inventory.lua` - Inventory system integration
+  - `bridge/main.lua` - Bridge initialization
+  - `bridge/README.md` - Developer documentation
+- **tgiann-inventory Support**: Full integration with tgiann-inventory system
+- **Comprehensive Documentation**: 
+  - Added CONTRIBUTING.md
+  - Added MIGRATION.md (v2.0 → v2.1 guide)
+  - Added PROJECT_SUMMARY.md
+  - Enhanced bridge/README.md with API examples
+- **GitHub Templates**:
+  - Bug report template
+  - Feature request template
+  - Pull request template
 
-### 🔧 Technical
-- Created universal helper functions:
-  - `AddItem()` - Works with both inventory systems
-  - `RemoveItem()` - Works with both inventory systems
-  - `GetItem()` - Works with both inventory systems
-  - `GetItems()` - Works with both inventory systems
-  - `CanCarryItem()` - Works with both inventory systems
-  - `SetItemMetadata()` - Works with both inventory systems
-  - `GetItemSlot()` - Works with both inventory systems
-- Inventory system detection runs on server startup
-- `InventorySystem` variable stores detected or manual system
-- Console now shows selected inventory system on startup
-- Improved metadata handling for durability
+### 🔧 Fixed
+- **BUG #4**: Farm interaction radius (was 2.0m, now 10.0m)
+- **BUG #5**: Mill interaction radius (was 2.5m, now 10.0m)
+- **BUG #6**: Bakery interaction radius (was 2.5m, now 10.0m)
+- **BUG #14**: Mill ped Z-coordinate (was underground at 44.52, now correct at 45.81)
+- **BUG #14**: Processor ped spawning correctly
+- **BUG #11**: Security distance tolerance (reduced from 5.0m to 2.0m)
+- **BUG #10**: Tool checking system improved (better ox_inventory client-side checks)
+- **BUG #1**: Notification system enhanced with better error handling
 
-### 🐛 Fixes
-- Fixed durability system to work universally
-- Improved item slot detection
-- Better error handling for inventory operations
+### 🚀 Improved
+- Better error handling across all modules
+- Enhanced logging system
+- Improved auto-detection reliability
+- Cleaner code structure (DRY principle)
+- Better comments and documentation in code
+
+### 🔄 Changed
+- `fxmanifest.lua`: Updated to load new modular bridge
+- All radius values standardized to 10.0m for consistency
+- Text interaction distances increased from 2.5m to 5.0m
+- Target interaction distances increased from 2.5m to 3.0m
+
+### 📝 Technical
+- Codebase reorganized for better maintainability
+- Reduced code duplication across client/server
+- Improved TypeScript-like JSDoc comments
+- Better separation of concerns
 
 ---
 
-## [1.0.0] - 2024-12-12
+## [2.0.0] - 2024-12-20
 
 ### ✨ Added
-- **Multi-Framework Support**
-  - QBox Framework (Native Exports)
-  - QBCore Framework (Standard Implementation)
-  - ESX Legacy (Dynamic Import)
-  - Automatic framework detection
-  
-- **Farming Features**
-  - Manual farming mode (E key) - 1-3 wheat yield
-  - Auto-farm mode (G key) - 1-2 wheat yield
-  - Cancel farming anytime with same key
-  - Cooldown progressbar with cancel instruction
-  - 4 different farming animations with props
-  
-- **Tool System**
-  - Durability mode (100 uses + 5% break chance)
-  - Permanent mode (never breaks)
-  - Client & server-side validation
-  - Tool damage notifications
-  
-- **User Interface**
-  - ox_lib TextUI with smart hide/show
-  - Progressbars showing cancel instructions
-  - Field markers with customizable appearance
-  - Map blip for field location
-  - Death & field-leave detection
-  
-- **Multi-Language Support**
-  - German (Deutsch)
-  - English
-  - French (Français)
-  - Spanish (Español)
-  - Polish (Polski)
-  - Turkish (Türkçe)
-  
-- **Performance Features**
-  - Separate threads for markers & interactions
-  - Smart throttling (200ms distance checks)
-  - Instant input detection (Wait(0))
-  - Optional marker disable for 0.00ms
-  - Optimized resmon (0.00-0.01ms in field)
-  
-- **Security Features**
-  - Rate limiting (20 requests/minute)
-  - Server-side cooldown enforcement
-  - Distance validation with tolerance
-  - Tool verification (client & server)
-  - Optional kick on exploit detection
-  - Comprehensive logging
-  
-- **Inventory Compatibility**
-  - ox_inventory (with metadata support)
-  - qs-inventory (Quasar Advanced Inventory)
-  - Universal inventory functions for seamless compatibility
+- Initial public release
+- Multi-framework support (QBox, QBCore, ESX)
+- Multi-inventory support (ox_inventory, qb-inventory, qs-inventory)
+- Complete farm-to-market chain (Wheat & Potato)
+- Auto-farm system
+- Tool durability system
+- Dynamic pricing
+- Security features (rate limiting, distance checks)
+- Multi-language support (6 languages)
 
-### 🔧 Technical Details
-
-#### QBox Implementation
-- Uses native QBox exports
-- No GetCoreObject() usage (correct implementation)
-- Direct exports for player management
-- Proper notification system
-
-#### ESX Implementation
-- Dynamic import via getSharedObject()
-- No manual fxmanifest.lua edit required
-- Automatic fallback handling
-- ESX callback support
-
-#### Code Quality
-- Universal helper functions for all frameworks
-- Framework-specific optimizations
-- Extensive error handling
-- Clean, maintainable code structure
-
-### 📝 Configuration Options
-- Framework selection (auto/manual)
-- Language selection (6 languages)
-- Field location & radius
-- Tool type (durability/permanent)
-- Farming yields & cooldowns
-- Animation selection
-- Marker & blip customization
-- Security settings
-- Performance options
-
-### 📦 Files Included
-- `client.lua` - Client-side logic
-- `server.lua` - Server-side handling
-- `config.lua` - Configuration
-- `fxmanifest.lua` - Resource manifest
-- `locale.lua` - Locale system
-- `locales/` - 6 language files
-- `README.md` - Documentation
-- `LICENSE` - MIT License
-- `CHANGELOG.md` - This file
+### 🎮 Features
+- Two crop types: Wheat and Potato
+- Four locations: Farm, Mill, Processor, Bakery/Restaurant
+- ox_lib integration (TextUI, Progress, Notifications)
+- Multiple interaction modes (ox_target, qb-target, 3D text)
+- Configurable everything
 
 ---
 
-## Version Types
+## [1.0.0] - 2024-12-01
 
-- **Major** (X.0.0): Breaking changes, major features
-- **Minor** (0.X.0): New features, no breaking changes
-- **Patch** (0.0.X): Bug fixes, small improvements
-
----
-
-## Links
-
-- [GitHub Repository](https://github.com/henrymops89/hm_wheatfarm)
-- [Issues](https://github.com/henrymops89/hm_wheatfarm/issues)
-- [Releases](https://github.com/henrymops89/hm_wheatfarm/releases)
-- [Wiki](https://github.com/henrymops89/hm_wheatfarm/wiki)
+### Initial Development
+- Private beta version
+- Basic wheat farming
+- Single framework support
 
 ---
 
-[1.0.1]: https://github.com/henrymops89/hm_wheatfarm/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/henrymops89/hm_wheatfarm/releases/tag/v1.0.0
+## Upcoming in v2.2.0 (Planned)
+
+### 🔮 Planned Features
+- [ ] Advanced crop system (seasons, weather effects)
+- [ ] Company system (team farming)
+- [ ] Crop quality system (different grades)
+- [ ] Market economy (supply/demand pricing)
+- [ ] Farm upgrades (better tools, automation)
+- [ ] Statistics & leaderboards
+- [ ] More crops (corn, tomato, etc.)
+- [ ] Greenhouse system
+
+### 🎯 Planned Improvements
+- [ ] Further optimization
+- [ ] More language translations
+- [ ] Video tutorials
+- [ ] Web-based config editor
+
+---
+
+## Release Strategy
+
+- **Major versions** (X.0.0): Breaking changes, major features
+- **Minor versions** (2.X.0): New features, backwards compatible
+- **Patch versions** (2.1.X): Bug fixes, minor improvements
+
+---
+
+## How to Update
+
+See [MIGRATION.md](MIGRATION.md) for upgrade guides.
+
+### Quick Update (Same major version)
+1. Backup your `config.lua`
+2. Replace all files except `config.lua`
+3. Check CHANGELOG for new config options
+4. Restart resource
+
+### Major Update (Breaking changes)
+Follow the detailed migration guide in MIGRATION.md
+
+---
+
+**Legend:**
+- ✨ Added: New features
+- 🔧 Fixed: Bug fixes
+- 🚀 Improved: Enhancements
+- 🔄 Changed: Modifications
+- ❌ Removed: Deprecated features
+- 🔒 Security: Security improvements
+- 📝 Technical: Code/internal changes
