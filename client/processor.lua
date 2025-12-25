@@ -152,7 +152,8 @@ CreateThread(function()
     end
     
     function point:nearby()
-        if Config.Processor.interactionType == '3dtext' and Config.Processor.text3d then
+        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
+        if Config.Processor.interactionType == '3dtext' and Config.Processor.text3d and Config.Processor.text3d.show3DText ~= false then
             if processorPed and DoesEntityExist(processorPed) then
                 local pedCoords = GetEntityCoords(processorPed)
                 local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
