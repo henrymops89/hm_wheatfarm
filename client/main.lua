@@ -43,25 +43,28 @@ RegisterNetEvent('wheat:notify', function(message, type, duration)
 end)
 
 -- Harvest Success Notification
-RegisterNetEvent('wheat:notifySuccess', function(amount, cropName)
+RegisterNetEvent('wheat:notifySuccess', function(amount, cropType)
     -- Security: Check for invoking resource
     if GetInvokingResource() then return end
     
-    Notify(string.format('Du hast %dx %s geerntet! 🌾', amount, cropName), 'success')
+    -- Get localized crop name from crop type key
+    local cropName = Lang:t('crop_' .. cropType)
+    
+    Notify(Lang:t('harvested_x', amount, cropName), 'success')
 end)
 
 -- Mill Success Notification
 RegisterNetEvent('wheat:mill:success', function(outputAmount)
     if GetInvokingResource() then return end
     
-    Notify(string.format('Du hast %dx Mehl produziert!', outputAmount), 'success')
+    Notify(Lang:t('produced_flour', outputAmount), 'success')
 end)
 
 -- Bakery Success Notification
 RegisterNetEvent('wheat:bakery:success', function(amount, totalPrice, pricePerItem)
     if GetInvokingResource() then return end
     
-    Notify(string.format('Du hast %dx Mehl für $%d verkauft! ($%d pro Einheit)', amount, totalPrice, pricePerItem), 'success')
+    Notify(Lang:t('sold_flour', amount, totalPrice, pricePerItem), 'success')
 end)
 
 -- System Info Display

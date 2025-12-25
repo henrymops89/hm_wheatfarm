@@ -14,7 +14,7 @@ local inMillZone = false
 local function ProcessMill()
     -- Guard: Already processing
     if isProcessing then
-        Notify('Die Mühle verarbeitet bereits!', 'error')
+        Notify(Lang:t('mill_busy'), 'error')
         return
     end
     
@@ -22,9 +22,9 @@ local function ProcessMill()
     local canInteract, reason = CanPlayerInteract()
     if not canInteract then
         if reason == 'player_dead' then
-            Notify('Du kannst nicht verarbeiten während du tot bist!', 'error')
+            Notify(Lang:t('player_dead'), 'error')
         elseif reason == 'in_vehicle' then
-            Notify('Du musst aus dem Fahrzeug aussteigen!', 'error')
+            Notify(Lang:t('in_vehicle'), 'error')
         end
         return
     end
@@ -32,7 +32,7 @@ local function ProcessMill()
     -- Check if player has enough wheat (client-side check)
     local requiredAmount = Config.Mill.input.amount
     if not HasEnoughItems(Config.Mill.input.item, requiredAmount) then
-        Notify('Du hast nicht genug ' .. Config.Mill.input.item .. '! Benötigt: ' .. requiredAmount, 'error')
+        Notify(Lang:t('not_enough_wheat', Config.Mill.input.item, requiredAmount), 'error')
         return
     end
     
@@ -41,7 +41,7 @@ local function ProcessMill()
     -- Show progress bar
     local success = ShowProgressBar({
         duration = Config.Mill.processingTime or 8000,
-        label = 'Weizen wird gemahlen...',
+        label = Lang:t('milling'),
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -89,7 +89,7 @@ CreateThread(function()
                         {
                             name = 'wheat_mill',
                             icon = Config.Mill.target.icon or 'fa-solid fa-wheat-awn',
-                            label = Config.Mill.target.label or 'Weizen verarbeiten',
+                            label = Lang:t('mill_target_label'),  -- ✅ Uses Locale
                             distance = Config.Mill.target.distance or 3.0,
                             onSelect = function()
                                 ProcessMill()
@@ -103,7 +103,7 @@ CreateThread(function()
                         options = {
                             {
                                 icon = Config.Mill.target.icon or 'fa-solid fa-wheat-awn',
-                                label = Config.Mill.target.label or 'Weizen verarbeiten',
+                                label = Lang:t('mill_target_label'),  -- ✅ Uses Locale
                                 action = function()
                                     ProcessMill()
                                 end

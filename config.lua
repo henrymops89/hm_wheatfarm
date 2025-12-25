@@ -9,7 +9,7 @@ Config = {}
 -- GENERAL SETTINGS
 -- =====================================================
 
-Config.Language = "de"        -- de, en, fr, es, pl, tr
+Config.Language = "en"        -- de, en, fr, es, pl, tr
 Config.Framework = "auto"  -- "auto", "qbox", "qbcore", "esx"
 Config.Inventory = "auto"  -- "auto", "ox_inventory", "qb-inventory"
 Config.TargetSystem = "auto"  -- "auto", "ox_target", "qb-target", "3dtext"

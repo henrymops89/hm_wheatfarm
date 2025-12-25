@@ -378,7 +378,7 @@ function DamageToolDurability(source, toolName)
     
     if not hasItem then
         -- Player doesn't have the required tool - FAIL!
-        TriggerClientEvent('wheat:notify', source, 'Du hast kein ' .. (toolConfig.label or toolConfig.item) .. '!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('no_tool_in_inventory', toolConfig.label or toolConfig.item), 'error')
         return false
     end
     

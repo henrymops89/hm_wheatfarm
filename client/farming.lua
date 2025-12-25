@@ -14,7 +14,7 @@ local inFarmZone = false
 local function StartHarvesting(farm)
     -- Guard: Already harvesting
     if isHarvesting then
-        Notify('Du erntest bereits!', 'error')
+        Notify(Lang:t('already_farming'), 'error')
         return
     end
     
@@ -22,9 +22,9 @@ local function StartHarvesting(farm)
     local canInteract, reason = CanPlayerInteract()
     if not canInteract then
         if reason == 'player_dead' then
-            Notify('Du kannst nicht ernten während du tot bist!', 'error')
+            Notify(Lang:t('player_dead'), 'error')
         elseif reason == 'in_vehicle' then
-            Notify('Du musst aus dem Fahrzeug aussteigen!', 'error')
+            Notify(Lang:t('in_vehicle'), 'error')
         end
         return
     end
@@ -41,7 +41,7 @@ local function StartHarvesting(farm)
     if cropConfig.requiredTool then
         if not HasRequiredTool(cropConfig.requiredTool) then
             local toolConfig = Config.Tools[cropConfig.requiredTool]
-            Notify('Du benötigst: ' .. (toolConfig and toolConfig.label or cropConfig.requiredTool), 'error')
+            Notify(Lang:t('need_tool', toolConfig and toolConfig.label or cropConfig.requiredTool), 'error')
             return
         end
     end
@@ -54,10 +54,13 @@ local function StartHarvesting(farm)
         animConfig = Config.Animations.shovel -- Fallback
     end
     
+    -- Get localized crop name
+    local cropName = Lang:t('crop_' .. currentFarm.crop)
+    
     -- Show progress bar
     local success = ShowProgressBar({
         duration = cropConfig.harvestTime or 5000,
-        label = cropConfig.name .. ' ernten...',
+        label = Lang:t('harvesting', cropName),
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -98,13 +101,16 @@ local function UpdateAutoFarmTextUI()
     local cropConfig = Config.Crops[currentFarm.crop]
     if not cropConfig then return end
     
+    -- Get localized crop name
+    local cropName = Lang:t('crop_' .. currentFarm.crop)
+    
     local text
     if autoFarmLoopRunning then
-        -- Auto-Farm läuft - nur Stop-Option anzeigen
-        text = '[G] Auto-Farm läuft - Drücke G zum Stoppen 🔴'
+        -- Auto-Farm running - only show stop option
+        text = Lang:t('autofarm_running_stop')
     else
-        -- Auto-Farm aus - beide Optionen anzeigen
-        text = '[E] ' .. cropConfig.name .. ' ernten  \n[G] Auto-Farm starten 🔄'
+        -- Auto-Farm off - show both options
+        text = Lang:t('harvest_crop_or_autofarm', cropName)
     end
     
     lib.showTextUI(text, {
@@ -147,7 +153,7 @@ local function StartAutoFarm(farm)
     if cropConfig.requiredTool then
         if not HasRequiredTool(cropConfig.requiredTool) then
             local toolConfig = Config.Tools[cropConfig.requiredTool]
-            Notify('Du benötigst: ' .. (toolConfig and toolConfig.label or cropConfig.requiredTool), 'error')
+            Notify(Lang:t('need_tool', toolConfig and toolConfig.label or cropConfig.requiredTool), 'error')
             return
         end
     end
@@ -195,12 +201,15 @@ local function StartAutoFarm(farm)
                 animConfig = Config.Animations.shovel
             end
             
+            -- Get localized crop name
+            local cropName = Lang:t('crop_' .. currentFarm.crop)
+            
             -- Shorter progress for auto-farm
             local duration = math.floor((cropConfig.harvestTime or 5000) * 0.6)
             
             local success = ShowProgressBar({
                 duration = duration,
-                label = 'Auto-Farm: ' .. cropConfig.name .. ' 🔄',
+                label = Lang:t('autofarm_progress', cropName),
                 useWhileDead = false,
                 canCancel = true,
                 disable = {
@@ -286,27 +295,30 @@ CreateThread(function()
             function point:nearby()
                 -- Draw marker if enabled
                 if Config.FarmDefaults.showMarker then
-                    local markerSize = farm.marker and farm.marker.size or vector3(4.0, 4.0, 1.0)
-                    local markerColor = Config.FarmDefaults.markerColor or {r = 255, g = 215, b = 0, a = 100}
-                    
-                    -- Draw SMALL center marker (original)
-                    DrawSimpleMarker(
-                        farm.location,
-                        Config.FarmDefaults.markerType or 1,
-                        markerSize,
-                        markerColor
-                    )
+                    -- Get actual interaction radius
+                    local radius = farm.radius or Config.FarmDefaults.radius or 10.0
                     
                     -- DEBUG: Draw LARGE circle showing actual interaction radius
-                    local radius = farm.radius or Config.FarmDefaults.radius or 10.0
+                    -- Marker Size is the DIAMETER (radius * 2), not radius!
                     DrawMarker(
                         1, -- Cylinder marker
                         farm.location.x, farm.location.y, farm.location.z - 1.0,
                         0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0,
-                        radius * 2.0, radius * 2.0, 0.5, -- Size = diameter!
-                        50, 200, 50, 50, -- Green, semi-transparent
+                        radius * 2.0, radius * 2.0, 0.5, -- Diameter = radius * 2
+                        50, 200, 50, 80, -- Green, semi-transparent
                         false, true, 2, false, nil, nil, false
+                    )
+                    
+                    -- Draw small center marker for visibility
+                    local markerSize = farm.marker and farm.marker.size or vector3(2.0, 2.0, 1.0)
+                    local markerColor = Config.FarmDefaults.markerColor or {r = 255, g = 215, b = 0, a = 100}
+                    
+                    DrawSimpleMarker(
+                        farm.location,
+                        Config.FarmDefaults.markerType or 1,
+                        markerSize,
+                        markerColor
                     )
                 end
             end

@@ -19,9 +19,14 @@ shared_scripts {
     'bridge/inventory.lua',
     'bridge/main.lua',
     
-    -- Localization (WICHTIG: locale.lua MUSS ZUERST geladen werden!)
-    'locale.lua',      -- ✅ Definiert das Locale-System
-    'locales/de.lua',  -- ✅ Nutzt das Locale-System
+    -- ✅ Localization (CRITICAL: locale.lua MUST load FIRST!)
+    'locale.lua',        -- ✅ 1. Define Locale class and Locales table
+    --'locales/de.lua',    -- ✅ 2. Then load languages
+    'locales/en.lua',
+    'locales/fr.lua',
+    'locales/es.lua',
+    'locales/pl.lua',
+   'locales/tr.lua',
 }
 
 -- =====================================================

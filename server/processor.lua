@@ -81,7 +81,7 @@ RegisterNetEvent('wheat:processor:process', function()
     ))
     
     -- Notify success
-    NotifyPlayer(source, string.format('Du hast %dx %s produziert!', outputAmount, outputItem), 'success')
+    NotifyPlayer(source, Lang:t('produced_items', outputAmount, outputItem), 'success')
     
     DebugPrint('🎉 PROCESSOR: Complete!')
 end)

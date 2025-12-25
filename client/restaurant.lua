@@ -119,7 +119,7 @@ CreateThread(function()
                         {
                             name = 'wheat_restaurant',
                             icon = Config.Restaurant.target.icon or 'fa-solid fa-dollar-sign',
-                            label = Config.Restaurant.target.label or 'Pommes verkaufen',
+                            label = Lang:t('restaurant_target_label'),
                             distance = Config.Restaurant.target.distance or 3.0,
                             onSelect = function()
                                 SellFries()
@@ -133,7 +133,7 @@ CreateThread(function()
                         options = {
                             {
                                 icon = Config.Restaurant.target.icon or 'fa-solid fa-dollar-sign',
-                                label = Config.Restaurant.target.label or 'Pommes verkaufen',
+                                label = Lang:t('restaurant_target_label'),
                                 action = function()
                                     SellFries()
                                 end

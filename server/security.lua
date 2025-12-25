@@ -147,7 +147,7 @@ function ValidateDistance(source, expectedLocation, actionName)
         end
         
         TriggerClientEvent('wheat:notify', source, 
-            'Du bist zu weit entfernt!', 
+            Lang:t('too_far_away_security'), 
             'error'
         )
         
@@ -185,7 +185,7 @@ function ValidateItemAmount(source, item, expectedAmount, actionName)
         suspiciousPlayers[playerId] = (suspiciousPlayers[playerId] or 0) + 1
         
         TriggerClientEvent('wheat:notify', source, 
-            'Du hast nicht genug Items!', 
+            Lang:t('not_enough_items_security'), 
             'error'
         )
         

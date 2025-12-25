@@ -71,10 +71,10 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     local message
     if isPeakHour then
         local bonusAmount = totalPrice - (basePrice * amount)
-        message = string.format('Du hast $%d für %dx %s bekommen! + $%d (Peak Hours Bonus: +%d%%)', 
+        message = Lang:t('sold_with_peak_bonus', 
             totalPrice, amount, Config.Bakery.item, bonusAmount, bonusPercent)
     else
-        message = string.format('Du hast $%d für %dx %s bekommen! ($%d pro Einheit)', 
+        message = Lang:t('sold_for_total', 
             totalPrice, amount, Config.Bakery.item, pricePerItem)
     end
     

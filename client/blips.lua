@@ -46,10 +46,9 @@ CreateThread(function()
     if Config.Farms then
         for i, farm in ipairs(Config.Farms) do
             if farm.enabled and farm.blip then
-                local cropConfig = Config.Crops[farm.crop]
-                local blipName = cropConfig and cropConfig.name or "Farm"
+                local cropName = Lang:t('crop_' .. farm.crop) -- ✅ Localized
                 
-                local blip = CreateLocationBlip(farm.blip, farm.location, blipName .. " Farm")
+                local blip = CreateLocationBlip(farm.blip, farm.location, cropName .. " Farm")
                 
                 if blip then
                     table.insert(createdBlips, blip)

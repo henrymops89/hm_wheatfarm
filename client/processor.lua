@@ -22,9 +22,9 @@ local function ProcessPotatoes()
     local canInteract, reason = CanPlayerInteract()
     if not canInteract then
         if reason == 'player_dead' then
-            Notify('Du kannst nicht verarbeiten während du tot bist!', 'error')
+            Notify(Lang:t('player_dead'), 'error')
         elseif reason == 'in_vehicle' then
-            Notify('Du musst aus dem Fahrzeug aussteigen!', 'error')
+            Notify(Lang:t('in_vehicle'), 'error')
         end
         return
     end
@@ -32,7 +32,7 @@ local function ProcessPotatoes()
     -- Check if player has enough potatoes
     local requiredAmount = Config.Processor.input.amount
     if not HasEnoughItems(Config.Processor.input.item, requiredAmount) then
-        Notify('Du hast nicht genug ' .. Config.Processor.input.item .. '! Benötigt: ' .. requiredAmount, 'error')
+        Notify(Lang:t('not_enough_potatoes', Config.Processor.input.item, requiredAmount), 'error')
         return
     end
     
@@ -41,7 +41,7 @@ local function ProcessPotatoes()
     -- Show progress bar
     local success = ShowProgressBar({
         duration = Config.Processor.processingTime or 10000,
-        label = 'Kartoffeln werden frittiert...',
+        label = Lang:t('processing'),
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -88,7 +88,7 @@ CreateThread(function()
                         {
                             name = 'wheat_processor',
                             icon = Config.Processor.target.icon or 'fa-solid fa-fire-burner',
-                            label = Config.Processor.target.label or 'Kartoffeln verarbeiten',
+                            label = Lang:t('processor_target_label'),
                             distance = Config.Processor.target.distance or 3.0,
                             onSelect = function()
                                 ProcessPotatoes()
@@ -102,7 +102,7 @@ CreateThread(function()
                         options = {
                             {
                                 icon = Config.Processor.target.icon or 'fa-solid fa-fire-burner',
-                                label = Config.Processor.target.label or 'Kartoffeln verarbeiten',
+                                label = Lang:t('processor_target_label'),
                                 action = function()
                                     ProcessPotatoes()
                                 end

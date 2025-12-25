@@ -72,7 +72,7 @@ RegisterNetEvent('wheat:harvest', function(farmId, cropType)
         ))
         
         -- Notify player
-        TriggerClientEvent('wheat:notifySuccess', source, amount, cropConfig.name)
+        TriggerClientEvent('wheat:notifySuccess', source, amount, cropType)
     else
         NotifyPlayer(source, 'Dein Inventar ist voll!', 'error')
     end
@@ -146,7 +146,7 @@ RegisterNetEvent('wheat:autoFarm', function(farmId, cropType)
             amount
         ))
         
-        TriggerClientEvent('wheat:notifySuccess', source, amount, cropConfig.name)
+        TriggerClientEvent('wheat:notifySuccess', source, amount, cropType)
     else
         NotifyPlayer(source, 'Dein Inventar ist voll!', 'error')
     end

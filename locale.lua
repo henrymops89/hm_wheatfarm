@@ -7,6 +7,12 @@ Locale = {}
 Locale.__index = Locale
 
 -- =====================================================
+-- AVAILABLE LOCALES STORAGE (Initialize FIRST!)
+-- =====================================================
+
+Locales = {} -- ✅ CRITICAL: Initialize BEFORE locale files load!
+
+-- =====================================================
 -- CREATE NEW LOCALE INSTANCE
 -- =====================================================
 
@@ -51,7 +57,55 @@ function Locale:t(key, ...)
 end
 
 -- =====================================================
--- GLOBAL LANG VARIABLE (set by locale files)
+-- AUTO-SELECT LANGUAGE BASED ON CONFIG
 -- =====================================================
 
-Lang = nil -- Will be set by locales/de.lua or locales/en.lua
+CreateThread(function()
+    local side = IsDuplicityVersion() and 'SERVER' or 'CLIENT'
+    
+    print(string.format('[WheatFarm %s] Locale system starting...', side))
+    
+    Wait(1000) -- ✅ Warte länger für Locale-Dateien
+    
+    -- Debug: Show available languages
+    local available = {}
+    for lang, _ in pairs(Locales) do
+        table.insert(available, lang)
+    end
+    
+    if #available > 0 then
+        print(string.format('[WheatFarm %s] Available locales: %s', side, table.concat(available, ', ')))
+    else
+        print(string.format('[WheatFarm %s] ⚠️ WARNING: NO locales loaded!', side))
+    end
+    
+    local selectedLang = Config.Language or 'de'
+    print(string.format('[WheatFarm %s] Config.Language = %s', side, selectedLang))
+    
+    local attempts = 0
+    
+    -- Retry bis Sprache verfügbar ist (max 5 Sekunden)
+    while not Locales[selectedLang] and attempts < 50 do
+        Wait(100)
+        attempts = attempts + 1
+        if attempts % 10 == 0 then
+            print(string.format('[WheatFarm %s] Still waiting for locale "%s"... (attempt %d/50)', side, selectedLang, attempts))
+        end
+    end
+    
+    if Locales[selectedLang] then
+        Lang = Locales[selectedLang]
+        print(string.format('[WheatFarm %s] ✅ Language: %s', side, selectedLang))
+    else
+        -- Fallback to German or English
+        Lang = Locales['de'] or Locales['en']
+        local fallbackUsed = Locales['de'] and 'de' or 'en'
+        print(string.format('^3[WheatFarm %s] WARNING: Language "%s" not found, using %s instead^7', side, selectedLang, fallbackUsed))
+    end
+end)
+
+-- =====================================================
+-- GLOBAL LANG VARIABLE (will be set automatically)
+-- =====================================================
+
+Lang = nil -- Will be auto-set based on Config.Language

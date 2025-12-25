@@ -2,8 +2,7 @@
 -- LOCALES/DE.LUA - German Translations
 -- Hauptsprache: Deutsch
 -- =====================================================
-
-Lang = Locale:new({
+Locales['de'] = Locale:new({
     phrases = {
         -- General
         ['inventory_full'] = 'Dein Inventar ist voll!',
@@ -76,6 +75,58 @@ Lang = Locale:new({
         ['press_g_autofarm'] = '[G] Auto-Farm bestätigen',
         ['press_e_process'] = '[E] Verarbeiten',
         ['press_e_sell'] = '[E] Verkaufen',
+        
+        -- Target Labels
+        ['mill_target_label'] = 'Weizen verarbeiten',
+        ['processor_target_label'] = 'Kartoffeln verarbeiten',
+        ['bakery_target_label'] = 'Mehl verkaufen',
+        ['restaurant_target_label'] = 'Pommes verkaufen',
+        
+        -- Bakery
+        ['already_selling'] = 'Du verkaufst bereits!',
+        ['no_flour_to_sell'] = 'Du hast kein %s zum Verkaufen!',
+        ['sell_flour_description'] = 'Du hast: %dx | Preis: $%d pro Einheit',
+        ['not_enough_flour'] = 'Du hast nicht genug %s!',
+        
+        -- Restaurant  
+        ['sell_fries_description'] = 'Du hast: %dx | Preis: $%d pro Einheit',
+        ['not_enough_fries'] = 'Du hast nicht genug %s!',
+        
+        -- Farming
+        ['already_farming'] = 'Du erntest bereits!',
+        ['need_tool'] = 'Du benötigst: %s',
+        
+        -- Mill
+        ['mill_busy'] = 'Die Mühle verarbeitet bereits!',
+        ['not_enough_wheat'] = 'Du hast nicht genug %s! Benötigt: %d',
+        
+        -- Processor
+        ['processor_busy'] = 'Die Fritteuse ist bereits in Benutzung!',
+        ['not_enough_potatoes'] = 'Du hast nicht genug %s! Benötigt: %d',
+        
+        -- Success Messages (Client Events)
+        ['harvested_x'] = 'Du hast %dx %s geerntet! 🌾',
+        ['produced_flour'] = 'Du hast %dx Mehl produziert!',
+        ['sold_flour'] = 'Du hast %dx Mehl für $%d verkauft! ($%d pro Einheit)',
+        
+        -- Server Success Messages
+        ['sold_for_total'] = 'Du hast $%d für %dx %s bekommen! ($%d pro Einheit)',
+        ['sold_with_peak_bonus'] = 'Du hast $%d für %dx %s bekommen! + $%d (Peak Hours Bonus: +%d%%)',
+        ['produced_items'] = 'Du hast %dx %s produziert!',
+        
+        -- Security/Validation
+        ['too_far_away_security'] = 'Du bist zu weit entfernt!',
+        ['not_enough_items_security'] = 'Du hast nicht genug Items!',
+        ['no_tool_in_inventory'] = 'Du hast kein %s!',
+        
+        -- Crop Names
+        ['crop_wheat'] = 'Weizen',
+        ['crop_potato'] = 'Kartoffeln',
+        
+        -- TextUI / Auto-Farm
+        ['autofarm_running_stop'] = '[G] Auto-Farm läuft - Drücke G zum Stoppen 🔴',
+        ['harvest_crop_or_autofarm'] = '[E] %s ernten  \n[G] Auto-Farm starten 🔄',
+        ['autofarm_progress'] = 'Auto-Farm: %s 🔄',
     },
     warnOnMissing = true
 })

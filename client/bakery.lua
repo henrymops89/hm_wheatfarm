@@ -14,7 +14,7 @@ local inBakeryZone = false
 local function SellFlour()
     -- Guard: Already selling
     if isSelling then
-        Notify('Du verkaufst bereits!', 'error')
+        Notify(Lang:t('already_selling'), 'error')
         return
     end
     
@@ -22,9 +22,9 @@ local function SellFlour()
     local canInteract, reason = CanPlayerInteract()
     if not canInteract then
         if reason == 'player_dead' then
-            Notify('Du kannst nicht verkaufen während du tot bist!', 'error')
+            Notify(Lang:t('player_dead'), 'error')
         elseif reason == 'in_vehicle' then
-            Notify('Du musst aus dem Fahrzeug aussteigen!', 'error')
+            Notify(Lang:t('in_vehicle'), 'error')
         end
         return
     end
@@ -33,16 +33,16 @@ local function SellFlour()
     local flourCount = GetItemCount(Config.Bakery.item)
     
     if flourCount <= 0 then
-        Notify('Du hast kein ' .. Config.Bakery.item .. ' zum Verkaufen!', 'error')
+        Notify(Lang:t('no_flour_to_sell', Config.Bakery.item), 'error')
         return
     end
     
     -- Ask how much to sell
-    local input = lib.inputDialog('Mehl verkaufen', {
+    local input = lib.inputDialog(Lang:t('sell_flour_title'), {
         {
             type = 'number',
             label = 'Menge',
-            description = 'Du hast: ' .. flourCount .. 'x | Preis: $' .. Config.Bakery.pricePerItem .. ' pro Einheit',
+            description = Lang:t('sell_flour_description', flourCount, Config.Bakery.pricePerItem),
             required = true,
             min = 1,
             max = math.min(flourCount, Config.Bakery.maxSellAmount or 100)
@@ -64,7 +64,7 @@ local function SellFlour()
     end
     
     if amount > flourCount then
-        Notify('Du hast nicht genug ' .. Config.Bakery.item .. '!', 'error')
+        Notify(Lang:t('not_enough_flour', Config.Bakery.item), 'error')
         return
     end
     
@@ -73,7 +73,7 @@ local function SellFlour()
     -- Show progress bar
     local success = ShowProgressBar({
         duration = 3000,
-        label = 'Mehl wird verkauft...',
+        label = Lang:t('selling_flour'),
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -119,7 +119,7 @@ CreateThread(function()
                         {
                             name = 'wheat_bakery',
                             icon = Config.Bakery.target.icon or 'fa-solid fa-dollar-sign',
-                            label = Config.Bakery.target.label or 'Mehl verkaufen',
+                            label = Lang:t('bakery_target_label'),
                             distance = Config.Bakery.target.distance or 3.0,
                             onSelect = function()
                                 SellFlour()
@@ -133,7 +133,7 @@ CreateThread(function()
                         options = {
                             {
                                 icon = Config.Bakery.target.icon or 'fa-solid fa-dollar-sign',
-                                label = Config.Bakery.target.label or 'Mehl verkaufen',
+                                label = Lang:t('bakery_target_label'),
                                 action = function()
                                     SellFlour()
                                 end
