@@ -412,7 +412,7 @@ function DamageToolDurability(source, toolName)
         local removed = RemoveItem(source, toolConfig.item, 1)
         
         if removed then
-            TriggerClientEvent('wheat:notify', source, 'Dein Werkzeug ist kaputt gegangen! 💔', 'error')
+            TriggerClientEvent('wheat:notify', source, Lang:t('tool_broke'), 'error')
             DebugPrint(string.format('Tool %s broke for player %d', toolConfig.item, source))
             return false  -- Tool broke - stop farming!
         end

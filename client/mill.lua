@@ -29,9 +29,6 @@ local function ProcessMill()
         return
     end
     
-    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
-    -- ✅ Server validiert alles!
-    
     isProcessing = true
     
     -- Show progress bar
@@ -59,7 +56,7 @@ local function ProcessMill()
         -- Trigger server to process (server validates everything!)
         TriggerServerEvent('wheat:mill:process')
     else
-        Notify('Verarbeitung abgebrochen!', 'error')
+        Notify(Lang:t('processing_cancelled'), 'error')
     end
 end
 
@@ -130,17 +127,20 @@ CreateThread(function()
         distance = Config.Mill.radius or 10.0,
     })
     
-    function point:onEnter()
-        inMillZone = true
+function point:onEnter()
+    inMillZone = true
+    
+    -- Show TextUI if using 3D text
+    if Config.Mill.interactionType == '3dtext' then
+        local processKey = Config.Keybinds.millProcess.key
+        local text = Lang:t('textui_process', '[' .. processKey .. ']')
         
-        -- Show TextUI if using 3D text
-        if Config.Mill.interactionType == '3dtext' then
-            lib.showTextUI('[E] Weizen verarbeiten', {
-                position = 'left-center',
-                icon = 'wheat-awn',
-            })
-        end
+        lib.showTextUI(text, {
+            position = 'left-center',
+            icon = 'wheat-awn',
+        })
     end
+end
     
     function point:onExit()
         inMillZone = false
@@ -150,21 +150,23 @@ CreateThread(function()
         end
     end
     
-    function point:nearby()
-        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
-        if Config.Mill.interactionType == '3dtext' and Config.Mill.text3d and Config.Mill.text3d.show3DText ~= false then
-            if millPed and DoesEntityExist(millPed) then
-                local pedCoords = GetEntityCoords(millPed)
-                local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
-                
-                Draw3DText(
-                    textCoords,
-                    Config.Mill.text3d.text or '[E] Weizen verarbeiten',
-                    Config.Mill.text3d.scale or 0.35
-                )
-            end
+function point:nearby()
+    if Config.Mill.interactionType == '3dtext' and Config.Mill.text3d and Config.Mill.text3d.show3DText ~= false then
+        if millPed and DoesEntityExist(millPed) then
+            local pedCoords = GetEntityCoords(millPed)
+            local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
+            
+            local processKey = Config.Keybinds.millProcess.key
+            local text = Lang:t('textui_process', '[' .. processKey .. ']')
+            
+            Draw3DText(
+                textCoords,
+                Config.Mill.text3d.text or text,
+                Config.Mill.text3d.scale or 0.35
+            )
         end
     end
+end
     
     DebugPrint('Mill zone created')
 end)

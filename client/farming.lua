@@ -37,9 +37,6 @@ local function StartHarvesting(farm)
         return
     end
     
-    -- ❌ ENTFERNT: Client-seitige Tool-Prüfung
-    -- ✅ Server macht jetzt die komplette Validierung!
-    
     isHarvesting = true
     
     -- Get animation config
@@ -76,7 +73,7 @@ local function StartHarvesting(farm)
         -- Trigger server-side harvest (server validates everything!)
         TriggerServerEvent('wheat:harvest', farm.id, farm.crop)
     else
-        Notify('Ernte abgebrochen!', 'error')
+        Notify(Lang:t('harvest_cancelled'), 'error')
     end
 end
 
@@ -98,13 +95,17 @@ local function UpdateAutoFarmTextUI()
     -- Get localized crop name
     local cropName = Lang:t('crop_' .. currentFarm.crop)
     
+    -- Get key labels from config
+    local harvestKey = Config.Keybinds.harvest.key
+    local autoFarmKey = Config.Keybinds.autoFarm.key
+    
     local text
     if autoFarmLoopRunning then
         -- Auto-Farm running - only show stop option
-        text = Lang:t('autofarm_running_stop')
+        text = Lang:t('textui_autofarm_running', '[' .. autoFarmKey .. ']', '[' .. autoFarmKey .. ']')
     else
         -- Auto-Farm off - show both options
-        text = Lang:t('harvest_crop_or_autofarm', cropName)
+        text = Lang:t('textui_harvest_or_autofarm', '[' .. harvestKey .. ']', cropName, '[' .. autoFarmKey .. ']')
     end
     
     lib.showTextUI(text, {
@@ -119,7 +120,7 @@ local function StopAutoFarm()
     autoFarmLoopRunning = false
     autoFarmActive = false
     
-    Notify('Auto-Farm gestoppt! 🛑', 'info')
+    Notify(Lang:t('autofarm_stopped'), 'info')
     
     -- Update TextUI
     UpdateAutoFarmTextUI()
@@ -143,13 +144,10 @@ local function StartAutoFarm(farm)
     -- Guard: Invalid crop
     if not cropConfig then return end
     
-    -- ❌ ENTFERNT: Client-seitige Tool-Prüfung
-    -- ✅ Server prüft das Tool bei jedem Auto-Farm Durchgang!
-    
     -- Start auto-farm loop
     autoFarmLoopRunning = true
     
-    Notify('Auto-Farm gestartet! Drücke [G] zum Stoppen 🔄', 'success', 5000)
+    Notify(Lang:t('autofarm_started'), 'success', 5000)
     
     -- Update TextUI to show "running" state
     UpdateAutoFarmTextUI()
@@ -159,18 +157,15 @@ local function StartAutoFarm(farm)
         while autoFarmLoopRunning do
             -- Check if still in zone
             if currentFarm ~= farm or not inFarmZone then
-                Notify('Auto-Farm gestoppt: Zone verlassen!', 'info')
+                Notify(Lang:t('autofarm_stopped_zone'), 'info')
                 StopAutoFarm()
                 break
             end
             
-            -- ❌ ENTFERNT: Client-seitige Tool-Prüfung
-            -- ✅ Server prüft das Tool!
-            
             -- Check player state
             local canInteract = CanPlayerInteract()
             if not canInteract then
-                Notify('Auto-Farm gestoppt!', 'error')
+                Notify(Lang:t('autofarm_stopped'), 'error')
                 StopAutoFarm()
                 break
             end
@@ -217,7 +212,7 @@ local function StartAutoFarm(farm)
                 Wait(cooldownTime)
             else
                 -- Player cancelled
-                Notify('Auto-Farm abgebrochen!', 'error')
+                Notify(Lang:t('autofarm_cancelled'), 'error')
                 StopAutoFarm()
                 break
             end
@@ -280,15 +275,14 @@ CreateThread(function()
                     -- Get actual interaction radius
                     local radius = farm.radius or Config.FarmDefaults.radius or 10.0
                     
-                    -- DEBUG: Draw LARGE circle showing actual interaction radius
-                    -- Marker Size is the DIAMETER (radius * 2), not radius!
+                    -- Draw LARGE circle showing actual interaction radius
                     DrawMarker(
                         1, -- Cylinder marker
                         farm.location.x, farm.location.y, farm.location.z - 1.0,
                         0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0,
-                        radius * 2.0, radius * 2.0, 0.5, -- Diameter = radius * 2
-                        50, 200, 50, 80, -- Green, semi-transparent
+                        radius * 2.0, radius * 2.0, 0.5,
+                        50, 200, 50, 80,
                         false, true, 2, false, nil, nil, false
                     )
                     

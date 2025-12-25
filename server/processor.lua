@@ -1,3 +1,8 @@
+-- =====================================================
+-- SERVER/PROCESSOR.LUA - Potato Processing (Server)
+-- Handles potato → fries conversion
+-- =====================================================
+
 RegisterNetEvent('wheat:processor:process', function()
     local source = source
     
@@ -34,13 +39,13 @@ RegisterNetEvent('wheat:processor:process', function()
     
     DebugPrint(string.format('PROCESSOR: Input=%dx%s, Output=%dx%s', inputAmount, inputItem, outputAmount, outputItem))
     
-    -- ✅ NEU: Server-seitige Item-Validierung!
+    -- Server-seitige Item-Validierung!
     local hasEnough = GetItemCount(source, inputItem)
     
     DebugPrint(string.format('Processor: Player %d has %d x %s (needs %d)', source, hasEnough, inputItem, inputAmount))
     
     if hasEnough < inputAmount then
-        TriggerClientEvent('wheat:notify', source, Lang:t('not_enough_potatoes', inputItem, inputAmount), 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('not_enough_potatoes', inputAmount), 'error')
         DebugPrint('❌ PROCESSOR: Not enough items')
         return
     end
@@ -52,7 +57,7 @@ RegisterNetEvent('wheat:processor:process', function()
     
     if not removed then
         DebugPrint('❌ PROCESSOR: RemoveItem failed')
-        TriggerClientEvent('wheat:notify', source, 'Fehler beim Entfernen der Items!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('error_remove_items'), 'error')
         return
     end
     
@@ -65,7 +70,7 @@ RegisterNetEvent('wheat:processor:process', function()
         DebugPrint('❌ PROCESSOR: AddItem failed - refunding')
         -- Refund input items if output failed
         AddItem(source, inputItem, inputAmount)
-        TriggerClientEvent('wheat:notify', source, 'Dein Inventar ist voll!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('inventory_full'), 'error')
         return
     end
     

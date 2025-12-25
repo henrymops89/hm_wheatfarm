@@ -1,40 +1,52 @@
 -- =====================================================
--- LOCALES/DE.LUA - German Translations
--- Hauptsprache: Deutsch
+-- LOCALES/DE.LUA - German Translations (COMPLETE v2.2.1)
 -- =====================================================
 Locales['de'] = Locale:new({
     phrases = {
         -- General
         ['inventory_full'] = 'Dein Inventar ist voll!',
         ['not_enough_items'] = 'Du hast nicht genug %s!',
+        ['not_enough_item'] = 'Du hast nicht genug %s!',
         ['invalid_amount'] = 'Ungültige Menge!',
         ['please_wait'] = 'Bitte warte noch %d Sekunden!',
         ['too_far_away'] = 'Du bist zu weit entfernt!',
         ['action_cancelled'] = 'Aktion abgebrochen!',
+        ['sale_cancelled'] = 'Verkauf abgebrochen!',
+        ['processing_cancelled'] = 'Verarbeitung abgebrochen!',
+        ['harvest_cancelled'] = 'Ernte abgebrochen!',
         
         -- Tools
         ['tool_required'] = 'Du benötigst: %s',
         ['tool_broken'] = 'Dein Werkzeug ist kaputt gegangen! 💔',
+        ['tool_broke'] = 'Dein Werkzeug ist kaputt gegangen! 💔',
         ['tool_almost_broken'] = 'Dein Werkzeug ist fast kaputt, aber du konntest es reparieren!',
         
         -- Farming
         ['harvesting'] = '%s ernten...',
         ['harvested_success'] = 'Du hast %dx %s geerntet! 🌾',
         ['already_harvesting'] = 'Du erntest bereits!',
+        ['already_farming'] = 'Du erntest bereits!',
         ['auto_farm_active'] = 'Auto-Farm läuft bereits!',
         ['auto_farm_cooldown'] = 'Warte kurz bevor du wieder auto-farmst!',
         ['auto_farm_label'] = 'Auto-Farm: %s',
+        ['autofarm_started'] = 'Auto-Farm gestartet! Drücke [G] zum Stoppen 🔄',
+        ['autofarm_stopped'] = 'Auto-Farm gestoppt! 🛑',
+        ['autofarm_stopped_zone'] = 'Auto-Farm gestoppt: Zone verlassen!',
+        ['autofarm_stopped_no_tool'] = 'Auto-Farm gestoppt: Kein Werkzeug mehr!',
+        ['autofarm_cancelled'] = 'Auto-Farm abgebrochen!',
         
         -- Mill
         ['milling'] = 'Weizen wird gemahlen...',
         ['mill_success'] = 'Du hast %dx Mehl produziert!',
         ['mill_processing'] = 'Die Mühle verarbeitet bereits!',
+        ['mill_busy'] = 'Die Mühle verarbeitet bereits!',
         ['not_enough_wheat'] = 'Du hast nicht genug Weizen! Benötigt: %d',
         
         -- Processor
         ['processing'] = 'Kartoffeln werden frittiert...',
         ['processor_success'] = 'Du hast %dx Pommes produziert!',
         ['processor_active'] = 'Die Fritteuse ist bereits in Betrieb!',
+        ['processor_busy'] = 'Die Fritteuse ist bereits in Betrieb!',
         ['not_enough_potatoes'] = 'Du hast nicht genug Kartoffeln! Benötigt: %d',
         
         -- Bakery
@@ -82,27 +94,13 @@ Locales['de'] = Locale:new({
         ['bakery_target_label'] = 'Mehl verkaufen',
         ['restaurant_target_label'] = 'Pommes verkaufen',
         
-        -- Bakery
-        ['already_selling'] = 'Du verkaufst bereits!',
+        -- Specific messages
         ['no_flour_to_sell'] = 'Du hast kein %s zum Verkaufen!',
         ['sell_flour_description'] = 'Du hast: %dx | Preis: $%d pro Einheit',
         ['not_enough_flour'] = 'Du hast nicht genug %s!',
-        
-        -- Restaurant  
         ['sell_fries_description'] = 'Du hast: %dx | Preis: $%d pro Einheit',
         ['not_enough_fries'] = 'Du hast nicht genug %s!',
-        
-        -- Farming
-        ['already_farming'] = 'Du erntest bereits!',
         ['need_tool'] = 'Du benötigst: %s',
-        
-        -- Mill
-        ['mill_busy'] = 'Die Mühle verarbeitet bereits!',
-        ['not_enough_wheat'] = 'Du hast nicht genug %s! Benötigt: %d',
-        
-        -- Processor
-        ['processor_busy'] = 'Die Fritteuse ist bereits in Benutzung!',
-        ['not_enough_potatoes'] = 'Du hast nicht genug %s! Benötigt: %d',
         
         -- Success Messages (Client Events)
         ['harvested_x'] = 'Du hast %dx %s geerntet! 🌾',
@@ -127,6 +125,29 @@ Locales['de'] = Locale:new({
         ['autofarm_running_stop'] = '[G] Auto-Farm läuft - Drücke G zum Stoppen 🔴',
         ['harvest_crop_or_autofarm'] = '[E] %s ernten  \n[G] Auto-Farm starten 🔄',
         ['autofarm_progress'] = 'Auto-Farm: %s 🔄',
+        -- UI Elements
+        ['key_harvest'] = '[E]',
+        ['key_autofarm'] = '[G]',
+        ['key_process'] = '[E]',
+        ['key_sell'] = '[E]',
+        
+        -- Dialog Buttons
+        ['ui_confirm'] = 'Bestätigen',
+        ['ui_cancel'] = 'Abbrechen',
+        ['ui_close'] = 'Schließen',
+        
+        -- TextUI with dynamic keys
+        ['textui_harvest'] = '%s %s ernten',           -- [E] Weizen ernten
+        ['textui_autofarm'] = '%s Auto-Farm starten',  -- [G] Auto-Farm starten
+        ['textui_process'] = '%s Verarbeiten',         -- [E] Verarbeiten
+        ['textui_sell'] = '%s Verkaufen',              -- [E] Verkaufen
+        ['textui_autofarm_running'] = '%s Auto-Farm läuft - Drücke %s zum Stoppen 🔴',
+        ['textui_harvest_or_autofarm'] = '%s %s ernten  \n%s Auto-Farm starten 🔄',
+        -- UI Elements
+        ['key_harvest'] = '[E]',
+        ['key_autofarm'] = '[G]',
+        ['key_process'] = '[E]',
+        ['key_sell'] = '[E]',
     },
     warnOnMissing = true
 })

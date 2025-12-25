@@ -14,7 +14,7 @@ local inProcessorZone = false
 local function ProcessPotatoes()
     -- Guard: Already processing
     if isProcessing then
-        Notify('Die Fritteuse ist bereits in Betrieb!', 'error')
+        Notify(Lang:t('processor_busy'), 'error')
         return
     end
     
@@ -28,9 +28,6 @@ local function ProcessPotatoes()
         end
         return
     end
-    
-    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
-    -- ✅ Server validiert alles!
     
     isProcessing = true
     
@@ -58,7 +55,7 @@ local function ProcessPotatoes()
     if success then
         TriggerServerEvent('wheat:processor:process')
     else
-        Notify('Verarbeitung abgebrochen!', 'error')
+        Notify(Lang:t('processing_cancelled'), 'error')
     end
 end
 
@@ -128,16 +125,19 @@ CreateThread(function()
         distance = Config.Processor.radius or 10.0,
     })
     
-    function point:onEnter()
-        inProcessorZone = true
+function point:onEnter()
+    inProcessorZone = true
+    
+    if Config.Processor.interactionType == '3dtext' then
+        local processKey = Config.Keybinds.processorProcess.key
+        local text = Lang:t('textui_process', '[' .. processKey .. ']')
         
-        if Config.Processor.interactionType == '3dtext' then
-            lib.showTextUI('[E] Kartoffeln verarbeiten', {
-                position = 'left-center',
-                icon = 'fire-burner',
-            })
-        end
+        lib.showTextUI(text, {
+            position = 'left-center',
+            icon = 'fire-burner',
+        })
     end
+end
     
     function point:onExit()
         inProcessorZone = false
@@ -147,21 +147,24 @@ CreateThread(function()
         end
     end
     
-    function point:nearby()
-        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
-        if Config.Processor.interactionType == '3dtext' and Config.Processor.text3d and Config.Processor.text3d.show3DText ~= false then
-            if processorPed and DoesEntityExist(processorPed) then
-                local pedCoords = GetEntityCoords(processorPed)
-                local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
-                
-                Draw3DText(
-                    textCoords,
-                    Config.Processor.text3d.text or '[E] Kartoffeln verarbeiten',
-                    Config.Processor.text3d.scale or 0.35
-                )
-            end
+
+function point:nearby()
+    if Config.Processor.interactionType == '3dtext' and Config.Processor.text3d and Config.Processor.text3d.show3DText ~= false then
+        if processorPed and DoesEntityExist(processorPed) then
+            local pedCoords = GetEntityCoords(processorPed)
+            local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
+            
+            local processKey = Config.Keybinds.processorProcess.key
+            local text = Lang:t('textui_process', '[' .. processKey .. ']')
+            
+            Draw3DText(
+                textCoords,
+                Config.Processor.text3d.text or text,
+                Config.Processor.text3d.scale or 0.35
+            )
         end
     end
+end
     
     DebugPrint('Processor zone created')
 end)

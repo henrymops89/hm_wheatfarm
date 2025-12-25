@@ -14,7 +14,7 @@ local inRestaurantZone = false
 local function SellFries()
     -- Guard: Already selling
     if isSelling then
-        Notify('Du verkaufst bereits!', 'error')
+        Notify(Lang:t('already_selling'), 'error')
         return
     end
     
@@ -22,22 +22,19 @@ local function SellFries()
     local canInteract, reason = CanPlayerInteract()
     if not canInteract then
         if reason == 'player_dead' then
-            Notify('Du kannst nicht verkaufen während du tot bist!', 'error')
+            Notify(Lang:t('player_dead'), 'error')
         elseif reason == 'in_vehicle' then
-            Notify('Du musst aus dem Fahrzeug aussteigen!', 'error')
+            Notify(Lang:t('in_vehicle'), 'error')
         end
         return
     end
     
-    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
-    -- ✅ Server prüft ob Spieler Pommes hat!
-    
     -- Ask how much to sell
-    local input = lib.inputDialog('Pommes verkaufen', {
+    local input = lib.inputDialog(Lang:t('sell_fries_title'), {
         {
             type = 'number',
-            label = 'Menge',
-            description = 'Preis: $' .. Config.Restaurant.pricePerItem .. ' pro Einheit',
+            label = Lang:t('amount_label'),
+            description = Lang:t('price_per_unit', Config.Restaurant.pricePerItem),
             required = true,
             min = 1,
             max = Config.Restaurant.maxSellAmount or 100
@@ -46,7 +43,7 @@ local function SellFries()
     
     -- Guard: Cancelled or invalid
     if not input or not input[1] then
-        Notify('Verkauf abgebrochen!', 'error')
+        Notify(Lang:t('sale_cancelled'), 'error')
         return
     end
     
@@ -54,7 +51,7 @@ local function SellFries()
     
     -- Validate amount
     if not amount or amount <= 0 then
-        Notify('Ungültige Menge!', 'error')
+        Notify(Lang:t('invalid_amount'), 'error')
         return
     end
     
@@ -63,7 +60,7 @@ local function SellFries()
     -- Show progress bar
     local success = ShowProgressBar({
         duration = 3000,
-        label = 'Pommes werden verkauft...',
+        label = Lang:t('selling_fries'),
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -84,7 +81,7 @@ local function SellFries()
         -- Server validiert ob genug Pommes vorhanden sind!
         TriggerServerEvent('wheat:restaurant:sell', amount)
     else
-        Notify('Verkauf abgebrochen!', 'error')
+        Notify(Lang:t('sale_cancelled'), 'error')
     end
 end
 
@@ -154,16 +151,19 @@ CreateThread(function()
         distance = Config.Restaurant.radius or 10.0,
     })
     
-    function point:onEnter()
-        inRestaurantZone = true
+function point:onEnter()
+    inRestaurantZone = true
+    
+    if Config.Restaurant.interactionType == '3dtext' then
+        local sellKey = Config.Keybinds.restaurantSell.key
+        local text = Lang:t('textui_sell', '[' .. sellKey .. ']')
         
-        if Config.Restaurant.interactionType == '3dtext' then
-            lib.showTextUI('[E] Pommes verkaufen', {
-                position = 'left-center',
-                icon = 'dollar-sign',
-            })
-        end
+        lib.showTextUI(text, {
+            position = 'left-center',
+            icon = 'dollar-sign',
+        })
     end
+end
     
     function point:onExit()
         inRestaurantZone = false
@@ -173,20 +173,23 @@ CreateThread(function()
         end
     end
     
-    function point:nearby()
-        if Config.Restaurant.interactionType == '3dtext' and Config.Restaurant.text3d and Config.Restaurant.text3d.show3DText ~= false then
-            if restaurantPed and DoesEntityExist(restaurantPed) then
-                local pedCoords = GetEntityCoords(restaurantPed)
-                local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
-                
-                Draw3DText(
-                    textCoords,
-                    Config.Restaurant.text3d.text or '[E] Pommes verkaufen',
-                    Config.Restaurant.text3d.scale or 0.35
-                )
-            end
+function point:nearby()
+    if Config.Restaurant.interactionType == '3dtext' and Config.Restaurant.text3d and Config.Restaurant.text3d.show3DText ~= false then
+        if restaurantPed and DoesEntityExist(restaurantPed) then
+            local pedCoords = GetEntityCoords(restaurantPed)
+            local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
+            
+            local sellKey = Config.Keybinds.restaurantSell.key
+            local text = Lang:t('textui_sell', '[' .. sellKey .. ']')
+            
+            Draw3DText(
+                textCoords,
+                Config.Restaurant.text3d.text or text,
+                Config.Restaurant.text3d.scale or 0.35
+            )
         end
     end
+end
     
     DebugPrint('Restaurant zone created')
 end)

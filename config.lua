@@ -9,7 +9,7 @@ Config = {}
 -- GENERAL SETTINGS
 -- =====================================================
 
-Config.Language = "de"        -- de, en, fr, es, pl, tr
+Config.Language = "en"        -- de, en
 Config.Framework = "auto"  -- "auto", "qbox", "qbcore", "esx"
 Config.Inventory = "auto"  -- "auto", "ox_inventory", "qb-inventory"
 Config.TargetSystem = "ox_target"  -- "auto", "ox_target", "qb-target", "3dtext"
@@ -97,7 +97,7 @@ Config.Crops = {
         maxYield = 4,
         autoFarmMin = 2,
         autoFarmMax = 3,
-        requiredTool = "shovel",
+        requiredTool = nil,
         blipColor = 20,
     },
 }

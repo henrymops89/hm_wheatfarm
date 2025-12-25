@@ -46,7 +46,7 @@ RegisterNetEvent('wheat:harvest', function(farmId, cropType)
         return
     end
     
-    -- ✅ SERVER-SEITIGE Tool-Prüfung!
+    -- SERVER-SEITIGE Tool-Prüfung!
     if cropConfig.requiredTool then
         local toolConfig = Config.Tools[cropConfig.requiredTool]
         
@@ -70,7 +70,7 @@ RegisterNetEvent('wheat:harvest', function(farmId, cropType)
         local toolStillUsable = DamageToolDurability(source, cropConfig.requiredTool)
         
         if not toolStillUsable then
-            TriggerClientEvent('wheat:notify', source, 'Dein Werkzeug ist kaputt!', 'error')
+            TriggerClientEvent('wheat:notify', source, Lang:t('tool_broke'), 'error')
             return
         end
     end
@@ -93,7 +93,7 @@ RegisterNetEvent('wheat:harvest', function(farmId, cropType)
         -- Notify player
         TriggerClientEvent('wheat:notifySuccess', source, amount, cropType)
     else
-        TriggerClientEvent('wheat:notify', source, 'Dein Inventar ist voll!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('inventory_full'), 'error')
     end
 end)
 
@@ -138,7 +138,7 @@ RegisterNetEvent('wheat:autoFarm', function(farmId, cropType)
         return
     end
     
-    -- ✅ SERVER-SEITIGE Tool-Prüfung für Auto-Farm!
+    -- SERVER-SEITIGE Tool-Prüfung für Auto-Farm!
     if cropConfig.requiredTool then
         local toolConfig = Config.Tools[cropConfig.requiredTool]
         
@@ -148,7 +148,7 @@ RegisterNetEvent('wheat:autoFarm', function(farmId, cropType)
             
             if not hasItem then
                 -- Spieler hat das Tool nicht mehr - Auto-Farm stoppen!
-                TriggerClientEvent('wheat:notify', source, 'Auto-Farm gestoppt: Kein Werkzeug mehr!', 'error')
+                TriggerClientEvent('wheat:notify', source, Lang:t('autofarm_stopped_no_tool'), 'error')
                 DebugPrint(string.format('Player %d auto-farm stopped - no tool: %s', source, toolConfig.item))
                 return
             end
@@ -162,7 +162,7 @@ RegisterNetEvent('wheat:autoFarm', function(farmId, cropType)
         local toolStillUsable = DamageToolDurability(source, cropConfig.requiredTool)
         
         if not toolStillUsable then
-            TriggerClientEvent('wheat:notify', source, 'Dein Werkzeug ist kaputt!', 'error')
+            TriggerClientEvent('wheat:notify', source, Lang:t('tool_broke'), 'error')
             return
         end
     end
@@ -186,6 +186,6 @@ RegisterNetEvent('wheat:autoFarm', function(farmId, cropType)
         
         TriggerClientEvent('wheat:notifySuccess', source, amount, cropType)
     else
-        TriggerClientEvent('wheat:notify', source, 'Dein Inventar ist voll!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('inventory_full'), 'error')
     end
 end)

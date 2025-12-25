@@ -29,15 +29,12 @@ local function SellFlour()
         return
     end
     
-    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
-    -- ✅ Server prüft ob Spieler Mehl hat!
-    
     -- Ask how much to sell
     local input = lib.inputDialog(Lang:t('sell_flour_title'), {
         {
             type = 'number',
-            label = 'Menge',
-            description = 'Preis: $' .. Config.Bakery.pricePerItem .. ' pro Einheit',
+            label = Lang:t('amount_label'),
+            description = Lang:t('price_per_unit', Config.Bakery.pricePerItem),
             required = true,
             min = 1,
             max = Config.Bakery.maxSellAmount or 100
@@ -46,7 +43,7 @@ local function SellFlour()
     
     -- Guard: Cancelled or invalid
     if not input or not input[1] then
-        Notify('Verkauf abgebrochen!', 'error')
+        Notify(Lang:t('sale_cancelled'), 'error')
         return
     end
     
@@ -54,7 +51,7 @@ local function SellFlour()
     
     -- Validate amount
     if not amount or amount <= 0 then
-        Notify('Ungültige Menge!', 'error')
+        Notify(Lang:t('invalid_amount'), 'error')
         return
     end
     
@@ -84,7 +81,7 @@ local function SellFlour()
         -- Server validiert ob genug Mehl vorhanden ist!
         TriggerServerEvent('wheat:bakery:sell', amount)
     else
-        Notify('Verkauf abgebrochen!', 'error')
+        Notify(Lang:t('sale_cancelled'), 'error')
     end
 end
 
@@ -154,16 +151,19 @@ CreateThread(function()
         distance = Config.Bakery.radius or 10.0,
     })
     
-    function point:onEnter()
-        inBakeryZone = true
+function point:onEnter()
+    inBakeryZone = true
+    
+    if Config.Bakery.interactionType == '3dtext' then
+        local sellKey = Config.Keybinds.bakerySell.key
+        local text = Lang:t('textui_sell', '[' .. sellKey .. ']')
         
-        if Config.Bakery.interactionType == '3dtext' then
-            lib.showTextUI('[E] Mehl verkaufen', {
-                position = 'left-center',
-                icon = 'dollar-sign',
-            })
-        end
+        lib.showTextUI(text, {
+            position = 'left-center',
+            icon = 'dollar-sign',
+        })
     end
+end
     
     function point:onExit()
         inBakeryZone = false
@@ -173,20 +173,23 @@ CreateThread(function()
         end
     end
     
-    function point:nearby()
-        if Config.Bakery.interactionType == '3dtext' and Config.Bakery.text3d and Config.Bakery.text3d.show3DText ~= false then
-            if bakeryPed and DoesEntityExist(bakeryPed) then
-                local pedCoords = GetEntityCoords(bakeryPed)
-                local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
-                
-                Draw3DText(
-                    textCoords,
-                    Config.Bakery.text3d.text or '[E] Mehl verkaufen',
-                    Config.Bakery.text3d.scale or 0.35
-                )
-            end
+function point:nearby()
+    if Config.Bakery.interactionType == '3dtext' and Config.Bakery.text3d and Config.Bakery.text3d.show3DText ~= false then
+        if bakeryPed and DoesEntityExist(bakeryPed) then
+            local pedCoords = GetEntityCoords(bakeryPed)
+            local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
+            
+            local sellKey = Config.Keybinds.bakerySell.key
+            local text = Lang:t('textui_sell', '[' .. sellKey .. ']')
+            
+            Draw3DText(
+                textCoords,
+                Config.Bakery.text3d.text or text,
+                Config.Bakery.text3d.scale or 0.35
+            )
         end
     end
+end
     
     DebugPrint('Bakery zone created')
 end)

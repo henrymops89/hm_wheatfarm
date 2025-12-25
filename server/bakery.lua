@@ -1,3 +1,8 @@
+-- =====================================================
+-- SERVER/BAKERY.LUA - Flour Selling (Server)
+-- Handles selling flour and payment
+-- =====================================================
+
 RegisterNetEvent('wheat:bakery:sell', function(amount)
     local source = source
     
@@ -20,17 +25,17 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     amount = SanitizeNumber(amount, 1, Config.Bakery.maxSellAmount or 100, 0)
     
     if amount <= 0 then
-        TriggerClientEvent('wheat:notify', source, 'Ungültige Menge!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('invalid_amount'), 'error')
         return
     end
     
-    -- ✅ NEU: Server-seitige Item-Validierung!
+    -- Server-seitige Item-Validierung!
     local hasEnough = GetItemCount(source, Config.Bakery.item)
     
     DebugPrint(string.format('Bakery: Player %d has %d x %s (wants to sell %d)', source, hasEnough, Config.Bakery.item, amount))
     
     if hasEnough < amount then
-        TriggerClientEvent('wheat:notify', source, 'Du hast nicht genug ' .. Config.Bakery.item .. '!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('not_enough_item', Config.Bakery.item), 'error')
         return
     end
     
@@ -43,7 +48,7 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     local removed = RemoveItem(source, Config.Bakery.item, amount)
     
     if not removed then
-        TriggerClientEvent('wheat:notify', source, 'Fehler beim Entfernen der Items!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('error_remove_items'), 'error')
         return
     end
     
@@ -53,7 +58,7 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     if not moneyAdded then
         -- Refund flour if payment failed
         AddItem(source, Config.Bakery.item, amount)
-        TriggerClientEvent('wheat:notify', source, 'Fehler bei der Zahlung!', 'error')
+        TriggerClientEvent('wheat:notify', source, Lang:t('error_payment'), 'error')
         return
     end
     
