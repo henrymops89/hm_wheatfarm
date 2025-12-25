@@ -1,31 +1,22 @@
-local Translations = {
-    -- Blip
-    blip_name = "Campo de Trigo",
-    
-    -- TextUI
-    textui_plow = "[E] Arar Trigo | [G] Auto-Farm",
-    
-    -- Progress Bar
-    progress_plowing = "Arando...",
-    progress_cooldown = "Esperando...",
-    progress_cancel = "Cancelar",
-    
-    -- Notifications
-    notify_success = "¡Has arado %dx trigo! 🌾",
-    notify_autofarm_start = "¡Auto-Farm activado! (Menos rendimiento)",
-    notify_autofarm_stop = "¡Auto-Farm desactivado!",
-    notify_action_cancelled = "¡Acción cancelada - Campo abandonado!",
-    notify_action_cancelled_manual = "¡Acción cancelada!",
-    notify_no_tool = "¡Necesitas una azada para cultivar!",
-    notify_tool_broken = "¡Tu azada se ha roto! 💔",
-    notify_tool_damaged = "Tu azada ha recibido daño (%d%% durabilidad)",
-    notify_cooldown = "¡Por favor espera! ⏱️",
-    
-    -- Logging
-    log_plow = "[WheatFarm] Jugador %s ha arado %dx trigo"
-}
-
+-- LOCALES/ES.LUA - Spanish Translations
 Lang = Locale:new({
-    phrases = Translations,
-    warnOnMissing = true
+    phrases = {
+        ['inventory_full'] = '¡Tu inventario está lleno!',
+        ['not_enough_items'] = '¡No tienes suficiente %s!',
+        ['tool_required'] = 'Necesitas: %s',
+        ['tool_broken'] = '¡Tu herramienta se rompió! 💔',
+        ['harvesting'] = 'Cosechando %s...',
+        ['harvested_success'] = '¡Cosechaste %dx %s! 🌾',
+        ['milling'] = 'Moliendo trigo...',
+        ['mill_success'] = '¡Produjiste %dx harina!',
+        ['processing'] = 'Friendo patatas...',
+        ['processor_success'] = '¡Produjiste %dx papas fritas!',
+        ['selling_flour'] = 'Vendiendo harina...',
+        ['bakery_success'] = '¡Vendiste %dx harina por $%d!',
+        ['selling_fries'] = 'Vendiendo papas...',
+        ['restaurant_success'] = '¡Vendiste %dx papas por $%d!',
+        ['player_dead'] = '¡No puedes hacer esto mientras estás muerto!',
+        ['in_vehicle'] = '¡Debes salir del vehículo!',
+    },
+    warnOnMissing = false
 })

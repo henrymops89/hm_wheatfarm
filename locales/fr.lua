@@ -1,31 +1,22 @@
-local Translations = {
-    -- Blip
-    blip_name = "Champ de Blé",
-    
-    -- TextUI
-    textui_plow = "[E] Labourer le Blé | [G] Auto-Farm",
-    
-    -- Progress Bar
-    progress_plowing = "Labour du blé en cours...",
-    progress_cooldown = "Attente jusqu'à la prochaine récolte...",
-    progress_cancel = "Annuler",
-    
-    -- Notifications
-    notify_success = "Vous avez labouré %dx blé! 🌾",
-    notify_autofarm_start = "Auto-Farm activé! (Moins de rendement)",
-    notify_autofarm_stop = "Auto-Farm désactivé!",
-    notify_action_cancelled = "Action annulée - Champ quitté!",
-    notify_action_cancelled_manual = "Action annulée!",
-    notify_no_tool = "Vous avez besoin d'une houe!",
-    notify_tool_broken = "Votre houe s'est cassée! 💔",
-    notify_tool_damaged = "Votre houe a pris des dégâts (%d%% durabilité)",
-    notify_cooldown = "Veuillez patienter! ⏱️",
-    
-    -- Logging
-    log_plow = "[WheatFarm] Joueur %s a labouré %dx blé"
-}
-
+-- LOCALES/FR.LUA - French Translations
 Lang = Locale:new({
-    phrases = Translations,
-    warnOnMissing = true
+    phrases = {
+        ['inventory_full'] = 'Votre inventaire est plein!',
+        ['not_enough_items'] = 'Vous n\'avez pas assez de %s!',
+        ['tool_required'] = 'Vous avez besoin de: %s',
+        ['tool_broken'] = 'Votre outil est cassé! 💔',
+        ['harvesting'] = 'Récolte de %s...',
+        ['harvested_success'] = 'Vous avez récolté %dx %s! 🌾',
+        ['milling'] = 'Mouture du blé...',
+        ['mill_success'] = 'Vous avez produit %dx farine!',
+        ['processing'] = 'Friture des pommes de terre...',
+        ['processor_success'] = 'Vous avez produit %dx frites!',
+        ['selling_flour'] = 'Vente de farine...',
+        ['bakery_success'] = 'Vous avez vendu %dx farine pour $%d!',
+        ['selling_fries'] = 'Vente de frites...',
+        ['restaurant_success'] = 'Vous avez vendu %dx frites pour $%d!',
+        ['player_dead'] = 'Vous ne pouvez pas faire ça en étant mort!',
+        ['in_vehicle'] = 'Vous devez sortir du véhicule!',
+    },
+    warnOnMissing = false
 })
