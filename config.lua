@@ -9,10 +9,10 @@ Config = {}
 -- GENERAL SETTINGS
 -- =====================================================
 
-Config.Language = "en"        -- de, en, fr, es, pl, tr
+Config.Language = "de"        -- de, en, fr, es, pl, tr
 Config.Framework = "auto"  -- "auto", "qbox", "qbcore", "esx"
 Config.Inventory = "auto"  -- "auto", "ox_inventory", "qb-inventory"
-Config.TargetSystem = "auto"  -- "auto", "ox_target", "qb-target", "3dtext"
+Config.TargetSystem = "ox_target"  -- "auto", "ox_target", "qb-target", "3dtext"
 Config.EnableLogging = true   -- Debug logs in console
 
 -- =====================================================
@@ -159,13 +159,12 @@ Config.Farms = {
 }
 
 -- =====================================================
--- MILL (FIXED RADIUS & PED COORDS - BUG #5, #14)
+-- MILL
 -- =====================================================
-
 Config.Mill = {
     enabled = true,
     location = vector3(2452.87, 4960.77, 46.81),
-    radius = 10.0,  -- ✅ FIXED: Was 2.5, now 10.0 (BUG #5)
+    radius = 10.0,
     
     input = {
         item = "wheat",
@@ -192,7 +191,7 @@ Config.Mill = {
     ped = {
         enabled = true,
         model = 's_m_m_gaffer_01',
-        coords = vector3(2452.11, 4960.86, 45.81),  -- ✅ FIXED: Was 44.52 (underground!), now 45.81 (BUG #14)
+        coords = vector3(2452.11, 4960.86, 45.81),
         heading = 234.0,
         scenario = 'WORLD_HUMAN_STAND_IMPATIENT',
         frozen = true,
@@ -200,17 +199,18 @@ Config.Mill = {
         blockevents = true,
     },
     
-    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "3dtext",
     
     text3d = {
         text = "[E] Weizen verarbeiten",
-        distance = 5.0,  -- ✅ IMPROVED: Was 2.5, now 5.0
+        distance = 5.0,
         font = 4,
         scale = 0.35,
+        show3DText = false,  -- ✅ NEU: 3D-Text ausblenden
     },
     
     target = {
-        distance = 3.0,  -- ✅ IMPROVED: Was 2.5, now 3.0
+        distance = 3.0,
         icon = 'fa-solid fa-wheat-awn',
         label = 'Weizen verarbeiten',
         size = vec3(2, 2, 2),
@@ -227,13 +227,12 @@ Config.Mill = {
 }
 
 -- =====================================================
--- BAKERY (FIXED RADIUS & PED COORDS - BUG #6, #14)
+-- BAKERY
 -- =====================================================
-
 Config.Bakery = {
     enabled = true,
     location = vector3(-285.44, 6226.90, 31.49),
-    radius = 10.0,  -- ✅ FIXED: Was 2.5, now 10.0 (BUG #6)
+    radius = 10.0,
     
     item = "flour",
     pricePerItem = 175,
@@ -248,7 +247,7 @@ Config.Bakery = {
     ped = {
         enabled = true,
         model = 's_m_m_autoshop_01',
-        coords = vector3(-285.44, 6226.90, 30.49),  -- ✅ CHECKED: 1m below location (correct)
+        coords = vector3(-285.44, 6226.90, 30.49),
         heading = 270.0,
         scenario = 'WORLD_HUMAN_STAND_IMPATIENT',
         frozen = true,
@@ -256,17 +255,18 @@ Config.Bakery = {
         blockevents = true,
     },
     
-    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "3dtext",
     
     text3d = {
         text = "[E] Mehl verkaufen",
-        distance = 5.0,  -- ✅ IMPROVED: Was 2.5, now 5.0
+        distance = 5.0,
         font = 4,
         scale = 0.35,
+        show3DText = false,  -- ✅ NEU: 3D-Text ausblenden
     },
     
     target = {
-        distance = 3.0,  -- ✅ IMPROVED: Was 2.5, now 3.0
+        distance = 3.0,
         icon = 'fa-solid fa-dollar-sign',
         label = 'Mehl verkaufen',
         size = vec3(2, 2, 2),
@@ -283,9 +283,8 @@ Config.Bakery = {
 }
 
 -- =====================================================
--- PROCESSOR (Potato → Fries Processing)
+-- PROCESSOR
 -- =====================================================
-
 Config.Processor = {
     enabled = true,
     location = vector3(2194.63, 5595.23, 53.76),
@@ -324,13 +323,14 @@ Config.Processor = {
         blockevents = true,
     },
     
-    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "3dtext",
     
     text3d = {
         text = "[E] Kartoffeln verarbeiten",
         distance = 5.0,
         font = 4,
         scale = 0.35,
+        show3DText = false,  -- ✅ NEU: 3D-Text ausblenden
     },
     
     target = {
@@ -351,9 +351,8 @@ Config.Processor = {
 }
 
 -- =====================================================
--- RESTAURANT (Fries Selling)
+-- RESTAURANT
 -- =====================================================
-
 Config.Restaurant = {
     enabled = true,
     location = vector3(-170.99, 6381.32, 31.49),
@@ -380,13 +379,14 @@ Config.Restaurant = {
         blockevents = true,
     },
     
-    interactionType = "auto",  -- "3dtext", "ox_target", "qb-target"
+    interactionType = "3dtext",
     
     text3d = {
         text = "[E] Pommes verkaufen",
         distance = 5.0,
         font = 4,
         scale = 0.35,
+        show3DText = false,  -- ✅ NEU: 3D-Text ausblenden
     },
     
     target = {
@@ -405,6 +405,18 @@ Config.Restaurant = {
         name = "Fast-Food Restaurant"
     },
 }
+-- =====================================================
+-- AUTO-SET INTERACTION TYPE FROM GLOBAL SETTING
+-- =====================================================
+if Config.TargetSystem and Config.TargetSystem ~= "auto" then
+    -- Override all interactionTypes with global setting
+    if Config.Mill then Config.Mill.interactionType = Config.TargetSystem end
+    if Config.Bakery then Config.Bakery.interactionType = Config.TargetSystem end
+    if Config.Processor then Config.Processor.interactionType = Config.TargetSystem end
+    if Config.Restaurant then Config.Restaurant.interactionType = Config.TargetSystem end
+    
+    print('^2[WheatFarm] All interactions set to: ' .. Config.TargetSystem .. '^7')
+end
 
 -- =====================================================
 -- SECURITY (IMPROVED - BUG #11)
