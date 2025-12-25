@@ -3,52 +3,55 @@ game 'gta5'
 lua54 'yes'
 
 author 'henrymops89'
-description 'HM Wheat Farm - Multi-Framework Economic System (FIXED v2.0.1)'
-version '2.0.1'
+description 'HM Wheat Farm - Multi-Framework Economic System with Modular Bridge'
+version '2.1.0'
 
 -- =====================================================
--- SHARED SCRIPTS (FIXED LOADING ORDER - BUG #3, #9)
+-- SHARED SCRIPTS
 -- =====================================================
 
 shared_scripts {
     '@ox_lib/init.lua',
     'config.lua',
-    'bridge.lua',
     
-    -- ✅ FIXED: Load locale files BEFORE main.lua (BUG #3, #9)
-    -- Change 'de' to your language: de, en, fr, es, pl, tr
-    'locales/de.lua',  
-    'locale.lua'
+    -- ✅ NEW: Modular Bridge System
+    'bridge/framework.lua',
+    'bridge/inventory.lua',
+    'bridge/main.lua',
+    
+    -- Localization (WICHTIG: locale.lua MUSS ZUERST geladen werden!)
+    'locale.lua',      -- ✅ Definiert das Locale-System
+    'locales/de.lua',  -- ✅ Nutzt das Locale-System
 }
 
 -- =====================================================
--- CLIENT SCRIPTS (Modular)
+-- CLIENT SCRIPTS
 -- =====================================================
 
 client_scripts {
-    'client/utils.lua',     -- ✅ Utils FIRST (contains Notify, etc.)
-    'client/main.lua',      -- Initialization
-    'client/blips.lua',     -- Blip Management
-    'client/farming.lua',   -- Farm System
-    'client/mill.lua',      -- Mill System
-    'client/processor.lua', -- Processor System
-    'client/bakery.lua',    -- Bakery System
-    'client/restaurant.lua' -- Restaurant System
+    'client/utils.lua',
+    'client/main.lua',
+    'client/blips.lua',
+    'client/farming.lua',
+    'client/mill.lua',
+    'client/processor.lua',
+    'client/bakery.lua',
+    'client/restaurant.lua'
 }
 
 -- =====================================================
--- SERVER SCRIPTS (Modular)
+-- SERVER SCRIPTS
 -- =====================================================
 
 server_scripts {
-    'server/utils.lua',     -- ✅ Utils FIRST (needed by others)
-    'server/security.lua',  -- Security SECOND (needed by events)
-    'server/main.lua',      -- Initialization
-    'server/farming.lua',   -- Farm Events
-    'server/mill.lua',      -- Mill Events
-    'server/processor.lua', -- Processor Events
-    'server/bakery.lua',    -- Bakery Events
-    'server/restaurant.lua' -- Restaurant Events
+    'server/utils.lua',
+    'server/security.lua',
+    'server/main.lua',
+    'server/farming.lua',
+    'server/mill.lua',
+    'server/processor.lua',
+    'server/bakery.lua',
+    'server/restaurant.lua'
 }
 
 -- =====================================================
@@ -61,5 +64,13 @@ dependencies {
     -- 'qbx_core' OR 'qb-core' OR 'es_extended'
     
     -- ONE inventory required (auto-detected):
-    -- 'ox_inventory' OR 'qb-inventory'
+    -- 'ox_inventory' OR 'qs-inventory' OR 'tgiann-inventory' OR 'qb-inventory'
+}
+
+-- =====================================================
+-- METADATA
+-- =====================================================
+
+files {
+    'bridge/README.md'
 }
