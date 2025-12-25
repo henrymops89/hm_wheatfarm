@@ -1,37 +1,44 @@
-# IDE & Editor files
-.vscode/
-.idea/
-*.sublime-*
-*.code-workspace
-
-# OS files
+# OS Files
 .DS_Store
 Thumbs.db
-*.swp
-*.swo
-*~
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
 
 # Logs
 *.log
+logs/
+*.bak
 
 # Temporary files
 *.tmp
 *.temp
-*.bak
-*.backup
+~*
 
-# Node modules (if any build tools used)
+# FiveM Cache
+cache/
+__resource.lua
+
+# Node modules (if using any build tools)
 node_modules/
 package-lock.json
 yarn.lock
 
-# Build outputs
+# Build artifacts
 dist/
 build/
+*.zip
 
-# FiveM cache
-cache/
+# Personal/Private files
+config_private.lua
+notes.txt
+TODO.md
 
-# Test files
+# Testing
 test/
-tests/
+*.test.lua
