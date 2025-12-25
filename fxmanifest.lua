@@ -21,7 +21,7 @@ shared_scripts {
     
     -- ✅ Localization (CRITICAL: locale.lua MUST load FIRST!)
     'locale.lua',        -- ✅ 1. Define Locale class and Locales table
-    --'locales/de.lua',    -- ✅ 2. Then load languages
+    'locales/de.lua',    -- ✅ 2. Then load languages
     'locales/en.lua',
     'locales/fr.lua',
     'locales/es.lua',
