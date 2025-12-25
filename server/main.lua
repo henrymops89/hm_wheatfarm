@@ -1,6 +1,6 @@
 -- =====================================================
--- SERVER/MAIN.LUA - Server Initialization (FIXED)
--- Single Responsibility: Framework init & system management
+-- SERVER/MAIN.LUA - Server Initialization
+-- Single Responsibility: Framework initialization
 -- =====================================================
 
 -- =====================================================
@@ -8,8 +8,6 @@
 -- =====================================================
 
 CreateThread(function()
-    Wait(1000)
-    
     -- Wait for bridge to be ready
     local attempts = 0
     while not IsFrameworkReady() and attempts < 50 do
@@ -22,43 +20,30 @@ CreateThread(function()
         return
     end
     
+    Wait(500) -- Extra safety
+    
     print('[WheatFarm] =====================================')
     print('[WheatFarm] Server Initialized Successfully!')
     print('[WheatFarm] Framework: ' .. GetFrameworkName())
     print('[WheatFarm] Inventory: ' .. GetInventoryName())
+    print('[WheatFarm] Security: ' .. (Config.Security.enabled and 'Enabled' or 'Disabled'))
+    print('[WheatFarm] Version: 2.1.0')
     print('[WheatFarm] =====================================')
-    
-    -- Broadcast system info to all clients
-    TriggerClientEvent('wheat:systemInfo', -1, {
-        framework = GetFrameworkName(),
-        inventory = GetInventoryName()
-    })
 end)
 
 -- =====================================================
--- SYSTEM INFO COMMAND
+-- GENERIC NOTIFICATION EVENT
 -- =====================================================
 
-RegisterCommand('wheatdebug', function(source, args, rawCommand)
-    if source == 0 then
-        -- Console command
-        print('=== WheatFarm Debug Info ===')
-        print('Framework: ' .. GetFrameworkName())
-        print('Inventory: ' .. GetInventoryName())
-        print('Config.Language: ' .. Config.Language)
-        print('Config.EnableLogging: ' .. tostring(Config.EnableLogging))
-        print('Security Enabled: ' .. tostring(Config.Security.enabled))
-    else
-        -- Player command
-        TriggerClientEvent('wheat:systemInfo', source, {
-            framework = GetFrameworkName(),
-            inventory = GetInventoryName()
-        })
-    end
-end, false)
+RegisterNetEvent('wheat:notify', function(message, type, duration)
+    local source = source
+    
+    -- This event is triggered BY the server, so no security check needed
+    -- It's used by utils.lua NotifyPlayer() function
+end)
 
 -- =====================================================
--- CLIENT INFO REQUEST HANDLER
+-- SYSTEM INFO REQUEST
 -- =====================================================
 
 RegisterNetEvent('wheat:requestInfo', function()
@@ -66,140 +51,23 @@ RegisterNetEvent('wheat:requestInfo', function()
     
     TriggerClientEvent('wheat:systemInfo', source, {
         framework = GetFrameworkName(),
-        inventory = GetInventoryName()
+        inventory = GetInventoryName(),
+        version = '2.1.0',
     })
 end)
 
 -- =====================================================
--- PLAYER DISCONNECT CLEANUP
+-- VERSION CHECK (Optional)
 -- =====================================================
 
-AddEventHandler('playerDropped', function(reason)
-    local source = source
+CreateThread(function()
+    Wait(5000) -- Wait for server to start
     
-    -- Trigger cleanup in security module
-    TriggerEvent('wheat:playerDisconnected', source)
+    local currentVersion = '2.1.0'
     
-    if Config.EnableLogging then
-        print('[WheatFarm] Player ' .. source .. ' disconnected - cleaned up')
-    end
+    print('^2[WheatFarm] Running version: ' .. currentVersion .. '^7')
+    print('^2[WheatFarm] Thanks for using HM Wheat Farm!^7')
 end)
-
--- =====================================================
--- DEBUG COMMANDS (only if logging enabled)
--- =====================================================
-
-if Config.EnableLogging then
-    -- Test wheat item
-    RegisterCommand('testwheat', function(source)
-        if source == 0 then
-            print('[WheatFarm] This command must be run in-game')
-            return
-        end
-        
-        print('[WheatFarm DEBUG] Testing wheat item for player ' .. source)
-        
-        local success = AddItem(source, 'wheat', 1)
-        
-        if success then
-            print('[WheatFarm DEBUG] ✅ Successfully added 1 wheat!')
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {0, 255, 0},
-                args = {"[WheatFarm]", "✅ Wheat item works!"}
-            })
-        else
-            print('[WheatFarm DEBUG] ❌ Failed to add wheat!')
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {255, 0, 0},
-                args = {"[WheatFarm]", "❌ Wheat item doesn't exist!"}
-            })
-        end
-    end, false)
-    
-    -- Test flour item
-    RegisterCommand('testflour', function(source)
-        if source == 0 then
-            print('[WheatFarm] This command must be run in-game')
-            return
-        end
-        
-        print('[WheatFarm DEBUG] Testing flour item for player ' .. source)
-        
-        local success = AddItem(source, 'flour', 1)
-        
-        if success then
-            print('[WheatFarm DEBUG] ✅ Successfully added 1 flour!')
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {0, 255, 0},
-                args = {"[WheatFarm]", "✅ Flour item works!"}
-            })
-        else
-            print('[WheatFarm DEBUG] ❌ Failed to add flour!')
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {255, 0, 0},
-                args = {"[WheatFarm]", "❌ Flour item doesn't exist!"}
-            })
-        end
-    end, false)
-    
-    -- Test hoe item
-    RegisterCommand('testhoe', function(source)
-        if source == 0 then
-            print('[WheatFarm] This command must be run in-game')
-            return
-        end
-        
-        print('[WheatFarm DEBUG] Testing hoe item for player ' .. source)
-        
-        local success = AddItem(source, 'hoe', 1)
-        
-        if success then
-            print('[WheatFarm DEBUG] ✅ Successfully added 1 hoe!')
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {0, 255, 0},
-                args = {"[WheatFarm]", "✅ Hoe item works! You can now farm!"}
-            })
-        else
-            print('[WheatFarm DEBUG] ❌ Failed to add hoe!')
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {255, 0, 0},
-                args = {"[WheatFarm]", "❌ Hoe item doesn't exist in items.lua!"}
-            })
-        end
-    end, false)
-    
-    -- Give test kit
-    RegisterCommand('wheatkit', function(source)
-        if source == 0 then
-            print('[WheatFarm] This command must be run in-game')
-            return
-        end
-        
-        print('[WheatFarm DEBUG] Giving test kit to player ' .. source)
-        
-        AddItem(source, 'hoe', 1)
-        AddItem(source, 'wheat', 10)
-        
-        TriggerClientEvent('chat:addMessage', source, {
-            color = {0, 255, 255},
-            args = {"[WheatFarm]", "✅ Test kit given! (1x Hoe, 10x Wheat)"}
-        })
-    end, false)
-    
-    -- Clear cooldowns
-    RegisterCommand('wheatclearcooldown', function(source)
-        if source == 0 then
-            TriggerEvent('wheat:clearAllCooldowns')
-            print('[WheatFarm] All cooldowns cleared')
-        else
-            TriggerEvent('wheat:clearCooldown', source)
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {0, 255, 255},
-                args = {"[WheatFarm]", "✅ Your cooldown cleared!"}
-            })
-        end
-    end, false)
-end
 
 -- =====================================================
 -- RESOURCE STOP HANDLER
@@ -208,35 +76,9 @@ end
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
     
-    if Config.EnableLogging then
-        print('[WheatFarm] Resource stopping - cleaning up...')
-    end
+    print('^3[WheatFarm] Resource stopping...^7')
     
-    if Config.EnableLogging then
-        print('[WheatFarm] Cleanup complete')
-    end
-end)
-
--- =====================================================
--- STARTUP MESSAGE
--- =====================================================
-
-CreateThread(function()
-    Wait(2000)
+    -- Any cleanup needed here
     
-    print('')
-    print('^2========================================^7')
-    print('^2    🌾 HM Wheat Farm System v2.0     ^7')
-    print('^2========================================^7')
-    print('^6Framework:^7 ' .. GetFrameworkName())
-    print('^6Inventory:^7 ' .. GetInventoryName())
-    print('^6Language:^7 ' .. Config.Language)
-    print('^6Security:^7 ' .. (Config.Security.enabled and '^2Enabled^7' or '^1Disabled^7'))
-    print('^6Logging:^7 ' .. (Config.EnableLogging and '^2Enabled^7' or '^1Disabled^7'))
-    print('')
-    print('^6Active Farms:^7 ' .. (Config.Farms and #Config.Farms or 0))
-    print('^6Mill:^7 ' .. (Config.Mill.enabled and '^2Enabled^7' or '^1Disabled^7'))
-    print('^6Bakery:^7 ' .. (Config.Bakery.enabled and '^2Enabled^7' or '^1Disabled^7'))
-    print('^2========================================^7')
-    print('')
+    print('^3[WheatFarm] Stopped successfully!^7')
 end)

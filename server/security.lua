@@ -1,101 +1,16 @@
 -- =====================================================
--- SERVER/SECURITY.LUA - Anti-Cheat & Security System
--- Single Responsibility: Cooldowns, rate limiting, exploit prevention
+-- SERVER/SECURITY.LUA - Anti-Exploit & Rate Limiting
+-- Protects against cheaters and exploits
 -- =====================================================
 
--- =====================================================
--- STATE MANAGEMENT
--- =====================================================
-
-local playerCooldowns = {}
-local requestCounter = {}
+local playerRequestCounts = {}
+local playerLastAction = {}
+local suspiciousPlayers = {}
 
 -- =====================================================
--- COOLDOWN SYSTEM
+-- RATE LIMITING
 -- =====================================================
 
--- Check if player is on cooldown for specific action
-function IsOnCooldown(source, action)
-    -- Guard: Security disabled
-    if not Config.Security or not Config.Security.enabled then
-        return false
-    end
-    
-    -- Guard: Cooldown enforcement disabled
-    if not Config.Security.enforceCooldown then
-        return false
-    end
-    
-    local key = source .. '_' .. action
-    local lastAction = playerCooldowns[key]
-    
-    -- Guard: No previous action recorded
-    if not lastAction then
-        return false
-    end
-    
-    local currentTime = os.time()
-    local timePassed = currentTime - lastAction
-    local minCooldown = Config.Security.minCooldownSeconds or 6
-    
-    return timePassed < minCooldown, (minCooldown - timePassed)
-end
-
--- Set cooldown for player action
-function SetCooldown(source, action)
-    local key = source .. '_' .. action
-    playerCooldowns[key] = os.time()
-    
-    if Config.EnableLogging then
-        print(string.format('[WheatFarm] Cooldown set for player %s (action: %s)', source, action))
-    end
-end
-
--- Clear cooldown for player
-function ClearCooldown(source, action)
-    local key = source .. '_' .. action
-    playerCooldowns[key] = nil
-    
-    if Config.EnableLogging then
-        print(string.format('[WheatFarm] Cooldown cleared for player %s (action: %s)', source, action))
-    end
-end
-
--- Clear all cooldowns for a player
-function ClearAllPlayerCooldowns(source)
-    local cleared = 0
-    
-    for key, _ in pairs(playerCooldowns) do
-        if string.match(key, '^' .. source .. '_') then
-            playerCooldowns[key] = nil
-            cleared = cleared + 1
-        end
-    end
-    
-    if Config.EnableLogging and cleared > 0 then
-        print(string.format('[WheatFarm] Cleared %d cooldowns for player %s', cleared, source))
-    end
-end
-
--- Clear all cooldowns (admin command)
-function ClearAllCooldowns()
-    local count = 0
-    for _ in pairs(playerCooldowns) do
-        count = count + 1
-    end
-    
-    playerCooldowns = {}
-    
-    if Config.EnableLogging then
-        print(string.format('[WheatFarm] Cleared all cooldowns (%d total)', count))
-    end
-end
-
--- =====================================================
--- RATE LIMITING SYSTEM
--- =====================================================
-
--- Check if player exceeded rate limit
 function CheckRateLimit(source)
     -- Guard: Security disabled
     if not Config.Security or not Config.Security.enabled then
@@ -103,39 +18,46 @@ function CheckRateLimit(source)
     end
     
     local currentTime = os.time()
-    local maxRequests = Config.Security.maxRequestsPerMinute or 20
+    local playerId = tostring(source)
     
-    -- Initialize counter for new player
-    if not requestCounter[source] then
-        requestCounter[source] = {
-            count = 1,
-            resetTime = currentTime + 60
+    -- Initialize tracking for new player
+    if not playerRequestCounts[playerId] then
+        playerRequestCounts[playerId] = {
+            count = 0,
+            resetTime = currentTime + 60 -- Reset every minute
         }
-        return true
     end
     
-    -- Reset counter if time expired
-    if currentTime >= requestCounter[source].resetTime then
-        requestCounter[source] = {
-            count = 1,
-            resetTime = currentTime + 60
-        }
-        return true
+    local playerData = playerRequestCounts[playerId]
+    
+    -- Reset counter if minute has passed
+    if currentTime >= playerData.resetTime then
+        playerData.count = 0
+        playerData.resetTime = currentTime + 60
     end
     
-    -- Increment counter
-    requestCounter[source].count = requestCounter[source].count + 1
+    -- Increment request count
+    playerData.count = playerData.count + 1
     
-    -- Check if limit exceeded
-    if requestCounter[source].count > maxRequests then
+    -- Check if exceeded limit
+    if playerData.count > Config.Security.maxRequestsPerMinute then
+        -- Log suspicious activity
         if Config.Security.logSuspiciousActivity then
-            print(string.format('^3[WheatFarm] ⚠️ Rate limit exceeded: Player %s (%d requests/min)^7', 
-                source, requestCounter[source].count))
+            local playerName = GetPlayerName(source) or 'Unknown'
+            print(string.format(
+                '^3[WheatFarm] SECURITY: Player %s (ID: %d) exceeded rate limit! (%d requests/min)^7',
+                playerName,
+                source,
+                playerData.count
+            ))
         end
         
-        -- Kick player if configured
-        if Config.Security.kickOnRateLimit then
-            DropPlayer(source, '[WheatFarm] Anti-Cheat: Rate limit exceeded')
+        -- Mark as suspicious
+        suspiciousPlayers[playerId] = (suspiciousPlayers[playerId] or 0) + 1
+        
+        -- Kick if configured
+        if Config.Security.kickOnRateLimit and suspiciousPlayers[playerId] >= 3 then
+            DropPlayer(source, '[WheatFarm] Zu viele Anfragen! (Anti-Cheat)')
         end
         
         return false
@@ -144,44 +66,90 @@ function CheckRateLimit(source)
     return true
 end
 
--- Reset rate limit for player
-function ResetRateLimit(source)
-    requestCounter[source] = nil
-    
-    if Config.EnableLogging then
-        print(string.format('[WheatFarm] Rate limit reset for player %s', source))
-    end
-end
-
 -- =====================================================
--- DISTANCE EXPLOIT DETECTION
+-- COOLDOWN SYSTEM
 -- =====================================================
 
--- Validate player is near location (anti-teleport hack)
-function ValidatePlayerDistance(source, location, maxDistance)
-    -- Guard: Security disabled
-    if not Config.Security or not Config.Security.enabled then
+function CheckCooldown(source, actionType, cooldownSeconds)
+    -- Guard: Cooldown enforcement disabled
+    if not Config.Security or not Config.Security.enforceCooldown then
         return true
     end
     
+    cooldownSeconds = cooldownSeconds or Config.Security.minCooldownSeconds or 6
+    
+    local currentTime = os.time()
+    local playerId = tostring(source)
+    local key = playerId .. '_' .. actionType
+    
+    -- Check last action time
+    local lastTime = playerLastAction[key]
+    
+    if lastTime then
+        local timePassed = currentTime - lastTime
+        
+        if timePassed < cooldownSeconds then
+            -- Still in cooldown
+            local remainingTime = cooldownSeconds - timePassed
+            
+            TriggerClientEvent('wheat:notify', source, 
+                string.format('Bitte warte noch %d Sekunden!', remainingTime), 
+                'error'
+            )
+            
+            return false
+        end
+    end
+    
+    -- Update last action time
+    playerLastAction[key] = currentTime
+    
+    return true
+end
+
+-- =====================================================
+-- DISTANCE VALIDATION (Anti-Teleport Exploit)
+-- =====================================================
+
+function ValidateDistance(source, expectedLocation, actionName)
     -- Guard: Distance check disabled
-    if not Config.Security.enforceDistance then
+    if not Config.Security or not Config.Security.enforceDistance then
         return true
     end
     
-    local tolerance = Config.Security.distanceTolerance or 5.0
-    local isValid, distance = ValidateDistance(source, location, maxDistance, tolerance)
+    local playerPed = GetPlayerPed(source)
+    local playerCoords = GetEntityCoords(playerPed)
+    local distance = #(playerCoords - expectedLocation)
     
-    if not isValid then
+    local tolerance = Config.Security.distanceTolerance or 2.0
+    
+    -- Player is too far away
+    if distance > tolerance then
+        local playerName = GetPlayerName(source) or 'Unknown'
+        
         if Config.Security.logSuspiciousActivity then
-            print(string.format('^1[WheatFarm] ⚠️ Distance exploit detected: Player %s is %.2fm away (max: %.2fm)^7', 
-                source, distance, maxDistance + tolerance))
+            print(string.format(
+                '^3[WheatFarm] SECURITY: Player %s (ID: %d) attempted %s from %.2fm away!^7',
+                playerName,
+                source,
+                actionName,
+                distance
+            ))
         end
         
-        -- Kick player if configured
-        if Config.Security.kickOnDistanceExploit then
-            DropPlayer(source, '[WheatFarm] Anti-Cheat: Distance exploit detected')
+        -- Mark as suspicious
+        local playerId = tostring(source)
+        suspiciousPlayers[playerId] = (suspiciousPlayers[playerId] or 0) + 1
+        
+        -- Kick if severe violation
+        if Config.Security.kickOnDistanceExploit and distance > (tolerance * 3) then
+            DropPlayer(source, '[WheatFarm] Distanz-Exploit erkannt! (Anti-Cheat)')
         end
+        
+        TriggerClientEvent('wheat:notify', source, 
+            'Du bist zu weit entfernt!', 
+            'error'
+        )
         
         return false
     end
@@ -190,202 +158,133 @@ function ValidatePlayerDistance(source, location, maxDistance)
 end
 
 -- =====================================================
--- COMBINED SECURITY CHECK
+-- ITEM VALIDATION (Anti-Duplication)
 -- =====================================================
 
--- Perform all security checks at once
-function PerformSecurityChecks(source, action, location, maxDistance)
-    -- Guard: Security disabled
-    if not Config.Security or not Config.Security.enabled then
-        return true, nil
-    end
+function ValidateItemAmount(source, item, expectedAmount, actionName)
+    -- Get actual item count
+    local actualCount = GetItemCount(source, item)
     
-    -- Check 1: Rate Limiting
-    if not CheckRateLimit(source) then
-        return false, 'rate_limit'
-    end
-    
-    -- Check 2: Cooldown
-    local onCooldown, remaining = IsOnCooldown(source, action)
-    if onCooldown then
-        if Config.EnableLogging then
-            print(string.format('[WheatFarm] Player %s is on cooldown (%ds remaining)', 
-                source, remaining))
+    -- Player doesn't have enough items
+    if actualCount < expectedAmount then
+        local playerName = GetPlayerName(source) or 'Unknown'
+        
+        if Config.Security.logSuspiciousActivity then
+            print(string.format(
+                '^3[WheatFarm] SECURITY: Player %s (ID: %d) attempted %s without having items! (Has: %d, Needs: %d)^7',
+                playerName,
+                source,
+                actionName,
+                actualCount,
+                expectedAmount
+            ))
         end
-        Notify(source, Lang:t('notify_cooldown'), 'error')
-        return false, 'cooldown'
+        
+        -- Mark as suspicious
+        local playerId = tostring(source)
+        suspiciousPlayers[playerId] = (suspiciousPlayers[playerId] or 0) + 1
+        
+        TriggerClientEvent('wheat:notify', source, 
+            'Du hast nicht genug Items!', 
+            'error'
+        )
+        
+        return false
     end
     
-    -- Check 3: Distance (if location provided)
-    if location and maxDistance then
-        if not ValidatePlayerDistance(source, location, maxDistance) then
-            Notify(source, Lang:t('notify_too_far'), 'error')
-            return false, 'distance'
-        end
-    end
-    
-    -- All checks passed - set cooldown
-    SetCooldown(source, action)
-    
-    return true, nil
+    return true
 end
 
 -- =====================================================
--- CLEANUP SYSTEM
+-- INPUT SANITIZATION
 -- =====================================================
 
--- Cleanup data for disconnected player
-local function cleanupPlayer(source)
-    -- Clear cooldowns
-    ClearAllPlayerCooldowns(source)
+function SanitizeNumber(input, min, max, default)
+    -- Convert to number
+    local num = tonumber(input)
     
-    -- Clear rate limit
-    ResetRateLimit(source)
-    
-    if Config.EnableLogging then
-        print(string.format('[WheatFarm] Security cleanup for player %s', source))
+    -- Guard: Invalid number
+    if not num then
+        return default or 0
     end
+    
+    -- Clamp to range
+    if min and num < min then
+        num = min
+    end
+    
+    if max and num > max then
+        num = max
+    end
+    
+    return num
 end
 
--- Event handler for player disconnect
-RegisterNetEvent('wheat:playerDisconnected', function(source)
-    cleanupPlayer(source)
+function SanitizeString(input, maxLength)
+    -- Guard: Not a string
+    if type(input) ~= 'string' then
+        return ''
+    end
+    
+    -- Remove dangerous characters
+    local cleaned = input:gsub('[<>"\']', '')
+    
+    -- Limit length
+    if maxLength and #cleaned > maxLength then
+        cleaned = cleaned:sub(1, maxLength)
+    end
+    
+    return cleaned
+end
+
+-- =====================================================
+-- CLEANUP ON DISCONNECT
+-- =====================================================
+
+AddEventHandler('playerDropped', function(reason)
+    local source = source
+    local playerId = tostring(source)
+    
+    -- Cleanup tracking data
+    playerRequestCounts[playerId] = nil
+    suspiciousPlayers[playerId] = nil
+    
+    -- Cleanup cooldowns for this player
+    for key, _ in pairs(playerLastAction) do
+        if key:match('^' .. playerId .. '_') then
+            playerLastAction[key] = nil
+        end
+    end
 end)
 
 -- =====================================================
--- PERIODIC CLEANUP THREAD
+-- PERIODIC CLEANUP (Prevent memory leak)
 -- =====================================================
 
--- Clean up inactive players every 5 minutes
 CreateThread(function()
     while true do
-        Wait(300000) -- 5 minutes
+        Wait(300000) -- Every 5 minutes
         
-        local activePlayers = {}
-        for _, playerId in ipairs(GetPlayers()) do
-            activePlayers[tonumber(playerId)] = true
-        end
+        local currentTime = os.time()
         
-        -- Cleanup cooldowns
-        local cooldownsCleaned = 0
-        for key, _ in pairs(playerCooldowns) do
-            local playerId = tonumber(string.match(key, '^(%d+)_'))
-            if playerId and not activePlayers[playerId] then
-                playerCooldowns[key] = nil
-                cooldownsCleaned = cooldownsCleaned + 1
+        -- Clean up old cooldown data
+        for key, lastTime in pairs(playerLastAction) do
+            if currentTime - lastTime > 600 then -- 10 minutes old
+                playerLastAction[key] = nil
             end
         end
         
-        -- Cleanup request counters
-        local countersCleaned = 0
-        for playerId, _ in pairs(requestCounter) do
-            if not activePlayers[playerId] then
-                requestCounter[playerId] = nil
-                countersCleaned = countersCleaned + 1
-            end
-        end
-        
-        if Config.EnableLogging and (cooldownsCleaned > 0 or countersCleaned > 0) then
-            print(string.format('[WheatFarm] Security cleanup: %d cooldowns, %d rate limits', 
-                cooldownsCleaned, countersCleaned))
-        end
+        DebugPrint('Security: Cleaned up old cooldown data')
     end
 end)
-
--- =====================================================
--- ADMIN COMMANDS
--- =====================================================
-
--- Event: Clear cooldown for specific player
-RegisterNetEvent('wheat:clearCooldown', function(target)
-    local source = source
-    
-    -- TODO: Add permission check here
-    -- if not IsPlayerAdmin(source) then return end
-    
-    local targetSource = target or source
-    ClearAllPlayerCooldowns(targetSource)
-    
-    if Config.EnableLogging then
-        print(string.format('[WheatFarm] Admin %s cleared cooldowns for player %s', 
-            source, targetSource))
-    end
-end)
-
--- Event: Clear all cooldowns
-RegisterNetEvent('wheat:clearAllCooldowns', function()
-    local source = source
-    
-    -- TODO: Add permission check here
-    -- if not IsPlayerAdmin(source) then return end
-    
-    ClearAllCooldowns()
-    
-    if Config.EnableLogging then
-        print(string.format('[WheatFarm] Admin %s cleared all cooldowns', source))
-    end
-end)
-
--- =====================================================
--- CLEANUP ON RESOURCE STOP
--- =====================================================
-
-AddEventHandler('wheat:cleanup', function()
-    playerCooldowns = {}
-    requestCounter = {}
-    print('[WheatFarm] Security data cleared')
-end)
-
--- =====================================================
--- DEBUG INFO
--- =====================================================
-
--- Get security stats
-function GetSecurityStats()
-    local activeCooldowns = 0
-    for _ in pairs(playerCooldowns) do
-        activeCooldowns = activeCooldowns + 1
-    end
-    
-    local activeRateLimits = 0
-    for _ in pairs(requestCounter) do
-        activeRateLimits = activeRateLimits + 1
-    end
-    
-    return {
-        cooldowns = activeCooldowns,
-        rateLimits = activeRateLimits,
-        enabled = Config.Security.enabled,
-        enforceCooldown = Config.Security.enforceCooldown,
-        enforceDistance = Config.Security.enforceDistance,
-    }
-end
-
--- Debug command
-RegisterCommand('wheatsecurity', function(source, args, rawCommand)
-    if source ~= 0 then return end -- Console only
-    
-    local stats = GetSecurityStats()
-    
-    print('=== WheatFarm Security Stats ===')
-    print('Enabled: ' .. tostring(stats.enabled))
-    print('Enforce Cooldown: ' .. tostring(stats.enforceCooldown))
-    print('Enforce Distance: ' .. tostring(stats.enforceDistance))
-    print('Active Cooldowns: ' .. stats.cooldowns)
-    print('Active Rate Limits: ' .. stats.rateLimits)
-    print('===============================')
-end, false)
 
 -- =====================================================
 -- EXPORTS
 -- =====================================================
 
-exports('IsOnCooldown', IsOnCooldown)
-exports('SetCooldown', SetCooldown)
-exports('ClearCooldown', ClearCooldown)
-exports('ClearAllPlayerCooldowns', ClearAllPlayerCooldowns)
 exports('CheckRateLimit', CheckRateLimit)
-exports('ResetRateLimit', ResetRateLimit)
-exports('ValidatePlayerDistance', ValidatePlayerDistance)
-exports('PerformSecurityChecks', PerformSecurityChecks)
-exports('GetSecurityStats', GetSecurityStats)
+exports('CheckCooldown', CheckCooldown)
+exports('ValidateDistance', ValidateDistance)
+exports('ValidateItemAmount', ValidateItemAmount)
+exports('SanitizeNumber', SanitizeNumber)
+exports('SanitizeString', SanitizeString)

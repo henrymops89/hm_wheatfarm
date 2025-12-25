@@ -1,113 +1,153 @@
 -- =====================================================
--- SERVER/FARMING.LUA - Harvest Event Handler
--- Single Responsibility: Handle farming events
+-- SERVER/FARMING.LUA - Crop Harvesting (Server)
+-- Handles harvest validation and rewards
 -- =====================================================
 
 -- =====================================================
--- HARVEST EVENT HANDLER
+-- HARVEST EVENT
 -- =====================================================
 
-RegisterNetEvent('wheat:harvest', function(farmId, cropItem, isAutoFarm)
+RegisterNetEvent('wheat:harvest', function(farmId, cropType)
     local source = source
     
-    -- Guard: Validate player
-    if not ValidatePlayer(source) then
+    -- Security: Rate limit check
+    if not CheckRateLimit(source) then
         return
     end
     
-    -- Find farm and crop config
-    local farmConfig = nil
-    local cropConfig = nil
-    
-    -- Search for farm in config
-    if Config.Farms and type(Config.Farms) == 'table' then
-        for _, farm in pairs(Config.Farms) do
-            if farm.id == farmId then
-                farmConfig = farm
-                if Config.Crops and Config.Crops[farm.crop] then
-                    cropConfig = Config.Crops[farm.crop]
-                end
-                break
-            end
-        end
-    end
-    
-    -- Guard: Invalid farm or crop
-    if not farmConfig or not cropConfig then
-        if Config.EnableLogging then
-            print(string.format('^1[WheatFarm] Invalid farm or crop! FarmID: %s, CropItem: %s^7', 
-                tostring(farmId), tostring(cropItem)))
-        end
+    -- Security: Cooldown check
+    if not CheckCooldown(source, 'harvest', 5) then
         return
     end
     
-    -- Security Checks
-    local securityPassed, reason = PerformSecurityChecks(
-        source, 
-        'harvest_' .. farmId, 
-        farmConfig.location, 
-        farmConfig.radius
-    )
-    
-    if not securityPassed then
-        if Config.EnableLogging then
-            print(string.format('[WheatFarm] Security check failed for player %s: %s', 
-                source, reason))
+    -- Validate farm exists
+    local farm = nil
+    for _, f in ipairs(Config.Farms) do
+        if f.id == farmId and f.enabled then
+            farm = f
+            break
         end
+    end
+    
+    if not farm then
+        print('^3[WheatFarm] Invalid farm ID: ' .. tostring(farmId) .. '^7')
         return
     end
     
-    -- Tool Check & Durability
+    -- Validate crop config
+    local cropConfig = Config.Crops[cropType]
+    if not cropConfig then
+        print('^3[WheatFarm] Invalid crop type: ' .. tostring(cropType) .. '^7')
+        return
+    end
+    
+    -- Security: Distance validation
+    if not ValidateDistance(source, farm.location, 'harvest') then
+        return
+    end
+    
+    -- Tool durability check (if required)
     if cropConfig.requiredTool then
-        local toolConfig = Config.Tools[cropConfig.requiredTool]
+        local toolStillUsable = DamageToolDurability(source, cropConfig.requiredTool)
         
-        if not toolConfig then
-            if Config.EnableLogging then
-                print(string.format('^3[WheatFarm] WARNING: Tool config not found: %s^7', 
-                    cropConfig.requiredTool))
-            end
-        else
-            -- Check if player has tool
-            local hasTool = GetItemCount(source, toolConfig.item) > 0
-            
-            if not hasTool then
-                Notify(source, 'Du brauchst ein Werkzeug!', 'error')
-                return
-            end
-            
-            -- Process tool durability
-            local toolUsable = ProcessToolDurability(source, toolConfig)
-            
-            if not toolUsable then
-                return
-            end
+        if not toolStillUsable then
+            NotifyPlayer(source, 'Dein Werkzeug ist kaputt!', 'error')
+            return
         end
     end
     
     -- Calculate yield
-    local amount = CalculateHarvestYield(cropConfig, isAutoFarm)
+    local amount = math.random(cropConfig.minYield or 1, cropConfig.maxYield or 3)
     
-    -- Validate can carry
-    if not ValidateCanCarry(source, cropConfig.item, amount) then
+    -- Give items
+    local success = AddItem(source, cropConfig.item, amount)
+    
+    if success then
+        -- Log action
+        LogAction('HARVEST', source, string.format(
+            'Farm: %s | Crop: %s | Amount: %d',
+            farmId,
+            cropType,
+            amount
+        ))
+        
+        -- Notify player
+        TriggerClientEvent('wheat:notifySuccess', source, amount, cropConfig.name)
+    else
+        NotifyPlayer(source, 'Dein Inventar ist voll!', 'error')
+    end
+end)
+
+-- =====================================================
+-- AUTO-FARM EVENT
+-- =====================================================
+
+RegisterNetEvent('wheat:autoFarm', function(farmId, cropType)
+    local source = source
+    
+    -- Security: Rate limit check
+    if not CheckRateLimit(source) then
         return
     end
     
-    -- Add item
-    local success, errorCode = SafeAddItem(source, cropConfig.item, amount)
+    -- Security: Cooldown check (longer for auto-farm)
+    if not CheckCooldown(source, 'autofarm', 8) then
+        return
+    end
+    
+    -- Validate farm
+    local farm = nil
+    for _, f in ipairs(Config.Farms) do
+        if f.id == farmId and f.enabled then
+            farm = f
+            break
+        end
+    end
+    
+    if not farm then
+        return
+    end
+    
+    -- Validate crop
+    local cropConfig = Config.Crops[cropType]
+    if not cropConfig then
+        return
+    end
+    
+    -- Security: Distance validation
+    if not ValidateDistance(source, farm.location, 'auto-farm') then
+        return
+    end
+    
+    -- Tool durability
+    if cropConfig.requiredTool then
+        local toolStillUsable = DamageToolDurability(source, cropConfig.requiredTool)
+        
+        if not toolStillUsable then
+            NotifyPlayer(source, 'Dein Werkzeug ist kaputt!', 'error')
+            return
+        end
+    end
+    
+    -- Calculate auto-farm yield (usually less than manual)
+    local amount = math.random(
+        cropConfig.autoFarmMin or cropConfig.minYield or 1,
+        cropConfig.autoFarmMax or cropConfig.maxYield or 2
+    )
+    
+    -- Give items
+    local success = AddItem(source, cropConfig.item, amount)
     
     if success then
+        LogAction('AUTO-FARM', source, string.format(
+            'Farm: %s | Crop: %s | Amount: %d',
+            farmId,
+            cropType,
+            amount
+        ))
+        
         TriggerClientEvent('wheat:notifySuccess', source, amount, cropConfig.name)
-        LogHarvest(source, farmId, cropConfig.name, amount, isAutoFarm)
-        
-        if Config.EnableLogging then
-            print(string.format('[WheatFarm] ✅ Player %s harvested %dx %s', source, amount, cropConfig.name))
-        end
     else
-        if Config.EnableLogging then
-            print(string.format('^1[WheatFarm] Failed to add item: %s (Player: %s, Item: %s, Amount: %d)^7', 
-                errorCode, source, cropConfig.item, amount))
-        end
-        
-        Notify(source, 'Fehler beim Hinzufügen des Items!', 'error')
+        NotifyPlayer(source, 'Dein Inventar ist voll!', 'error')
     end
 end)

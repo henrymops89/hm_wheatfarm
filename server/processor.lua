@@ -1,81 +1,87 @@
 -- =====================================================
--- SERVER/PROCESSOR.LUA - Potato Processing Event Handler
--- Single Responsibility: Handle potato → fries processing
+-- SERVER/PROCESSOR.LUA - Potato Processing (Server)
+-- Handles potato → fries conversion
 -- =====================================================
 
 RegisterNetEvent('wheat:processor:process', function()
     local source = source
     
+    DebugPrint(string.format('🔧 PROCESSOR: Event received from player %d', source))
+    
+    -- Security: Rate limit
+    if not CheckRateLimit(source) then
+        DebugPrint('❌ PROCESSOR: Rate limit hit for player ' .. source)
+        return
+    end
+    
+    DebugPrint('✅ PROCESSOR: Rate limit OK')
+    
     -- Guard: Processor disabled
     if not Config.Processor or not Config.Processor.enabled then
-        if Config.EnableLogging then
-            print('[WheatFarm] Processor is disabled!')
-        end
+        DebugPrint('❌ PROCESSOR: Processor is disabled in config!')
         return
     end
     
-    -- Guard: Validate player
-    if not ValidatePlayer(source) then
+    DebugPrint('✅ PROCESSOR: Config enabled')
+    
+    -- Security: Distance validation
+    if not ValidateDistance(source, Config.Processor.location, 'processor process') then
+        DebugPrint('❌ PROCESSOR: Distance validation failed for player ' .. source)
         return
     end
     
-    -- Security: Cooldown check
-    local onCooldown, remaining = IsOnCooldown(source, 'processor_process')
-    if onCooldown then
-        if Config.EnableLogging then
-            print(string.format('[WheatFarm] Player %s is on cooldown (%ds remaining)', 
-                source, remaining))
-        end
-        Notify(source, Lang:t('notify_cooldown'), 'error')
+    DebugPrint('✅ PROCESSOR: Distance OK')
+    
+    local inputItem = Config.Processor.input.item
+    local inputAmount = Config.Processor.input.amount
+    local outputItem = Config.Processor.output.item
+    local outputAmount = Config.Processor.output.amount
+    
+    DebugPrint(string.format('PROCESSOR: Input=%dx%s, Output=%dx%s', inputAmount, inputItem, outputAmount, outputItem))
+    
+    -- Validate player has enough input items
+    if not ValidateItemAmount(source, inputItem, inputAmount, 'processor process') then
+        DebugPrint('❌ PROCESSOR: ValidateItemAmount failed')
         return
     end
     
-    -- Set cooldown
-    SetCooldown(source, 'processor_process')
+    DebugPrint('✅ PROCESSOR: Item validation OK')
     
-    -- Validate has enough input items
-    if not ValidateItemCount(source, Config.Processor.input.item, Config.Processor.input.amount) then
-        Notify(source, string.format('Du brauchst mindestens %dx Kartoffeln!', Config.Processor.input.amount), 'error')
+    -- Remove input items
+    local removed = RemoveItem(source, inputItem, inputAmount)
+    
+    if not removed then
+        DebugPrint('❌ PROCESSOR: RemoveItem failed')
+        NotifyPlayer(source, 'Fehler beim Entfernen der Items!', 'error')
         return
     end
     
-    -- Process transaction (remove potatoes, add fries)
-    local success = ProcessTransaction(
-        source,
-        Config.Processor.input.item,
-        Config.Processor.input.amount,
-        Config.Processor.output.item,
-        Config.Processor.output.amount
-    )
+    DebugPrint('✅ PROCESSOR: Items removed')
     
-    if success then
-        -- Success notification
-        TriggerClientEvent('wheat:processor:success', source, Config.Processor.output.amount)
-        
-        -- Log processing
-        LogProcessing(
-            source, 
-            Config.Processor.input.item, 
-            Config.Processor.input.amount, 
-            Config.Processor.output.item, 
-            Config.Processor.output.amount
-        )
-        
-        if Config.EnableLogging then
-            print(string.format('[WheatFarm] ✅ Player %s processed %dx potatoes → %dx fries', 
-                source, Config.Processor.input.amount, Config.Processor.output.amount))
-        end
-    else
-        -- Transaction failed (inventory full or error)
-        Notify(source, 'Verarbeitung fehlgeschlagen! Inventar voll?', 'error')
-        
-        if Config.EnableLogging then
-            print(string.format('[WheatFarm] Processor transaction failed for player %s', source))
-        end
+    -- Add output items
+    local added = AddItem(source, outputItem, outputAmount)
+    
+    if not added then
+        DebugPrint('❌ PROCESSOR: AddItem failed - refunding')
+        -- Refund input items if output failed
+        AddItem(source, inputItem, inputAmount)
+        NotifyPlayer(source, 'Dein Inventar ist voll!', 'error')
+        return
     end
-end)
-
--- Client event registration (handled on client)
-RegisterNetEvent('wheat:processor:success', function(amount)
-    -- Registered on client side
+    
+    DebugPrint('✅ PROCESSOR: Items added successfully!')
+    
+    -- Log action
+    LogAction('PROCESSOR', source, string.format(
+        'Input: %dx %s | Output: %dx %s',
+        inputAmount,
+        inputItem,
+        outputAmount,
+        outputItem
+    ))
+    
+    -- Notify success
+    NotifyPlayer(source, string.format('Du hast %dx %s produziert!', outputAmount, outputItem), 'success')
+    
+    DebugPrint('🎉 PROCESSOR: Complete!')
 end)
