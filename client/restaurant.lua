@@ -183,7 +183,8 @@ CreateThread(function()
     end
     
     function point:nearby()
-        if Config.Restaurant.interactionType == '3dtext' and Config.Restaurant.text3d then
+        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
+        if Config.Restaurant.interactionType == '3dtext' and Config.Restaurant.text3d and Config.Restaurant.text3d.show3DText ~= false then
             if restaurantPed and DoesEntityExist(restaurantPed) then
                 local pedCoords = GetEntityCoords(restaurantPed)
                 local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
