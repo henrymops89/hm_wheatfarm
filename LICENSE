@@ -1,21 +1,79 @@
-MIT License
-
+HM Wheat Farm - Custom License
 Copyright (c) 2024 henrymops89
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+TERMS AND CONDITIONS
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. PERMISSIONS
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+You are permitted to:
+- ✅ Use this resource on your FiveM server (personal or public)
+- ✅ Modify the resource for your own server
+- ✅ Study the code for learning purposes
+- ✅ Create derivative works for personal use
+
+2. RESTRICTIONS
+
+You are NOT permitted to:
+- ❌ Redistribute this resource (original or modified)
+- ❌ Sell or commercialize this resource
+- ❌ Claim this work as your own
+- ❌ Remove or modify copyright notices
+- ❌ Share modified versions publicly
+- ❌ Use this resource on paid FiveM servers without permission
+
+3. ATTRIBUTION
+
+- You must keep all copyright notices intact
+- Credit "henrymops89" as the original author
+- Do not misrepresent the origin of this resource
+
+4. MODIFICATIONS
+
+- Modifications are allowed for personal server use
+- Modified versions may not be distributed
+- Bug fixes and improvements may be contributed via Pull Requests
+- Contributions will be reviewed and potentially merged
+
+5. SUPPORT
+
+- Support is provided on a best-effort basis
+- No warranty or guarantee is provided
+- The author is not liable for any damages
+
+6. COMMERCIAL USE
+
+- Commercial use requires explicit written permission
+- Contact henrymops89 for licensing inquiries
+- Paid servers may require a commercial license
+
+7. ENFORCEMENT
+
+- Violations may result in:
+  * DMCA takedown notices
+  * Exclusion from future updates
+  * Public blacklisting
+  * Legal action (in severe cases)
+
+8. THIRD-PARTY DEPENDENCIES
+
+This resource uses ox_lib and other third-party libraries.
+Their respective licenses apply to their code.
+
+9. DISCLAIMER
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
+OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+For questions about licensing, contact:
+GitHub: https://github.com/henrymops89/hm_wheatfarm
+Discord: [Your Discord]
+
+Last Updated: December 25, 2024
