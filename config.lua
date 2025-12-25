@@ -103,7 +103,7 @@ Config.Crops = {
 }
 
 -- =====================================================
--- FARMS (FIXED RADIUS - BUG #4)
+-- FARMS (FIXED MARKER SIZE!)
 -- =====================================================
 
 Config.FarmDefaults = {
@@ -130,30 +130,30 @@ Config.Farms = {
         id = "wheat_farm",
         enabled = true,
         crop = "wheat",
-        location = vector3(2229.68, 5577.36, 53.85),
-        radius = 10.0,  -- ✅ FIXED: Was 2.0, now 10.0 (BUG #4)
+        location = vector3(2218.46, 5048.79, 46.12),
+        radius = 10.0,  -- ✅ Interaction radius = 10m
         blip = {
             enabled = true,
             sprite = 285,
             scale = 0.8,
         },
         marker = {
-            size = vector3(4.0, 4.0, 1.0),
+            size = vector3(20.0, 20.0, 1.0),  -- ✅ GLEICH wie grüner Kreis! (radius * 2 = 20m Durchmesser)
         },
     },
     {
         id = "potato_farm",
         enabled = true,
         crop = "potato",
-        location = vector3(2214.38, 5577.54, 53.87),
-        radius = 10.0,  -- ✅ FIXED: Was 2.0, now 10.0
+        location = vector3(2250.37, 5069.06, 46.02),
+        radius = 10.0,  -- ✅ Interaction radius = 10m
         blip = {
             enabled = true,
             sprite = 285,
             scale = 0.8,
         },
         marker = {
-            size = vector3(4.0, 4.0, 1.0),
+            size = vector3(20.0, 20.0, 1.0),  -- ✅ GLEICH wie grüner Kreis! (radius * 2 = 20m Durchmesser)
         },
     },
 }
@@ -301,7 +301,6 @@ Config.Processor = {
     },
     
     processingTime = 10000,
-    cooldown = 5000,
     
     animation = {
         dict = 'anim@heists@box_carry@',
@@ -357,13 +356,12 @@ Config.Processor = {
 
 Config.Restaurant = {
     enabled = true,
-    location = vector3(-170.99, 6381.32, 31.49),  -- ✅ NEW: Paleto Bay - Cluckin' Bell Area
+    location = vector3(-170.99, 6381.32, 31.49),
     radius = 10.0,
     
     item = "fries",
     pricePerItem = 125,
     maxSellAmount = 100,
-    cooldown = 5000,
     
     dynamicPricing = {
         enabled = true,
@@ -374,7 +372,7 @@ Config.Restaurant = {
     ped = {
         enabled = true,
         model = 's_m_y_busboy_01',
-        coords = vector3(-170.99, 6381.32, 30.49),  -- ✅ 1m below location (correct)
+        coords = vector3(-170.99, 6381.32, 30.49),
         heading = 135.0,
         scenario = 'WORLD_HUMAN_STAND_IMPATIENT',
         frozen = true,
@@ -418,10 +416,8 @@ Config.Security = {
     enforceCooldown = true,
     minCooldownSeconds = 6,
     enforceDistance = true,
-    distanceTolerance = 2.0,  -- ✅ FIXED: Was 5.0 (too generous!), now 2.0 (BUG #11)
+    distanceTolerance = 12.0,  -- ✅ FIXED: War 2.0, jetzt 12.0 (für 10m Radius Zonen + Buffer)
     kickOnRateLimit = false,
     kickOnDistanceExploit = false,
     logSuspiciousActivity = true,
-
 }
-
