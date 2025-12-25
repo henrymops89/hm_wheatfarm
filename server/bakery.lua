@@ -36,7 +36,7 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     
     -- Calculate price (with dynamic pricing)
     local basePrice = Config.Bakery.pricePerItem
-    local pricePerItem = CalculateDynamicPrice(basePrice, Config.Bakery.dynamicPricing)
+    local pricePerItem, isPeakHour, bonusPercent = CalculateDynamicPrice(basePrice, Config.Bakery.dynamicPricing)
     local totalPrice = pricePerItem * amount
     
     -- Remove flour
@@ -59,13 +59,24 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     
     -- Log action
     LogAction('BAKERY_SELL', source, string.format(
-        'Amount: %dx %s | Price/Item: $%d | Total: $%d',
+        'Amount: %dx %s | Price/Item: $%d | Total: $%d%s',
         amount,
         Config.Bakery.item,
         pricePerItem,
-        totalPrice
+        totalPrice,
+        isPeakHour and ' | PEAK HOUR BONUS: +' .. bonusPercent .. '%' or ''
     ))
     
-    -- Notify success
-    TriggerClientEvent('wheat:bakery:success', source, amount, totalPrice, pricePerItem)
+    -- Notify success with peak hour info
+    local message
+    if isPeakHour then
+        local bonusAmount = totalPrice - (basePrice * amount)
+        message = string.format('Du hast $%d für %dx %s bekommen! + $%d (Peak Hours Bonus: +%d%%)', 
+            totalPrice, amount, Config.Bakery.item, bonusAmount, bonusPercent)
+    else
+        message = string.format('Du hast $%d für %dx %s bekommen! ($%d pro Einheit)', 
+            totalPrice, amount, Config.Bakery.item, pricePerItem)
+    end
+    
+    NotifyPlayer(source, message, 'success')
 end)

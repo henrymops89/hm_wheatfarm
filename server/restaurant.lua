@@ -36,8 +36,12 @@ RegisterNetEvent('wheat:restaurant:sell', function(amount)
     
     -- Calculate price (with dynamic pricing)
     local basePrice = Config.Restaurant.pricePerItem
-    local pricePerItem = CalculateDynamicPrice(basePrice, Config.Restaurant.dynamicPricing)
+    local pricePerItem, isPeakHour, bonusPercent = CalculateDynamicPrice(basePrice, Config.Restaurant.dynamicPricing)
     local totalPrice = pricePerItem * amount
+    
+    -- DEBUG: Log what we got from CalculateDynamicPrice
+    DebugPrint(string.format('RESTAURANT: basePrice=%d, pricePerItem=%d, isPeakHour=%s, bonusPercent=%d', 
+        basePrice, pricePerItem, tostring(isPeakHour), bonusPercent or 0))
     
     -- Remove fries
     local removed = RemoveItem(source, Config.Restaurant.item, amount)
@@ -59,19 +63,24 @@ RegisterNetEvent('wheat:restaurant:sell', function(amount)
     
     -- Log action
     LogAction('RESTAURANT_SELL', source, string.format(
-        'Amount: %dx %s | Price/Item: $%d | Total: $%d',
+        'Amount: %dx %s | Price/Item: $%d | Total: $%d%s',
         amount,
         Config.Restaurant.item,
         pricePerItem,
-        totalPrice
+        totalPrice,
+        isPeakHour and ' | PEAK HOUR BONUS: +' .. bonusPercent .. '%' or ''
     ))
     
-    -- Notify success
-    NotifyPlayer(source, string.format(
-        'Du hast %dx %s für $%d verkauft! ($%d pro Einheit)',
-        amount,
-        Config.Restaurant.item,
-        totalPrice,
-        pricePerItem
-    ), 'success')
+    -- Notify success with peak hour info
+    local message
+    if isPeakHour then
+        local bonusAmount = totalPrice - (basePrice * amount)
+        message = string.format('Du hast $%d für %dx %s bekommen! + $%d (Peak Hours Bonus: +%d%%)', 
+            totalPrice, amount, Config.Restaurant.item, bonusAmount, bonusPercent)
+    else
+        message = string.format('Du hast $%d für %dx %s bekommen! ($%d pro Einheit)', 
+            totalPrice, amount, Config.Restaurant.item, pricePerItem)
+    end
+    
+    NotifyPlayer(source, message, 'success')
 end)

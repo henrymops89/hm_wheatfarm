@@ -451,11 +451,14 @@ end
 function CalculateDynamicPrice(basePrice, config)
     -- Guard: Dynamic pricing disabled
     if not config or not config.enabled then
-        return basePrice
+        DebugPrint('CalculateDynamicPrice: Dynamic pricing disabled')
+        return basePrice, false, 0
     end
     
     local currentHour = os.date('%H', os.time())
     currentHour = tonumber(currentHour)
+    
+    DebugPrint(string.format('CalculateDynamicPrice: Current hour = %d', currentHour))
     
     -- Check if current hour is peak hour
     local isPeakHour = false
@@ -468,12 +471,21 @@ function CalculateDynamicPrice(basePrice, config)
         end
     end
     
+    DebugPrint(string.format('CalculateDynamicPrice: isPeakHour = %s', tostring(isPeakHour)))
+    
     -- Apply multiplier
     if isPeakHour and config.peakHourMultiplier then
-        return math.floor(basePrice * config.peakHourMultiplier)
+        local finalPrice = math.floor(basePrice * config.peakHourMultiplier)
+        local bonusPercent = math.floor((config.peakHourMultiplier - 1.0) * 100)
+        
+        DebugPrint(string.format('CalculateDynamicPrice: PEAK HOUR! basePrice=%d, finalPrice=%d, bonus=%d%%', 
+            basePrice, finalPrice, bonusPercent))
+        
+        return finalPrice, true, bonusPercent
     end
     
-    return basePrice
+    DebugPrint('CalculateDynamicPrice: No peak hour bonus')
+    return basePrice, false, 0
 end
 
 -- =====================================================
