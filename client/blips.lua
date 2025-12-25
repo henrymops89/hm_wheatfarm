@@ -1,287 +1,120 @@
 -- =====================================================
--- CLIENT/BLIPS.LUA - Blip Management
--- Single Responsibility: Create and manage all blips
+-- CLIENT/BLIPS.LUA - Map Blips Management
+-- Single Responsibility: Creating & managing map blips
 -- =====================================================
 
 local createdBlips = {}
 
 -- =====================================================
--- HELPER: CREATE BLIP
+-- CREATE BLIP FUNCTION
 -- =====================================================
 
--- Single function to create any blip (DRY Principle!)
-local function createBlip(coords, sprite, color, scale, name)
-    local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
+local function CreateLocationBlip(config, location, name)
+    -- Guard: Blip disabled
+    if not config.enabled then return nil end
     
-    SetBlipSprite(blip, sprite)
+    -- Guard: No location
+    if not location then 
+        print('^3[WheatFarm] Cannot create blip: No location provided^7')
+        return nil 
+    end
+    
+    local blip = AddBlipForCoord(location.x, location.y, location.z)
+    
+    -- Configure blip
+    SetBlipSprite(blip, config.sprite or 1)
     SetBlipDisplay(blip, 4)
-    SetBlipScale(blip, scale)
-    SetBlipColour(blip, color)
+    SetBlipScale(blip, config.scale or 0.8)
+    SetBlipColour(blip, config.color or 1)
     SetBlipAsShortRange(blip, true)
     
     BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString(name)
+    AddTextComponentString(config.name or name or "Wheat Farm")
     EndTextCommandSetBlipName(blip)
     
     return blip
 end
 
 -- =====================================================
--- FARM BLIPS
--- =====================================================
-
-local function createFarmBlips()
-    -- Guard: No farms configured
-    if not Config.Farms or type(Config.Farms) ~= 'table' then
-        DebugPrint('No farms configured for blips')
-        return
-    end
-    
-    for _, farmConfig in pairs(Config.Farms) do
-        -- Guard: Farm disabled or blip disabled
-        if not farmConfig.enabled then goto continue end
-        if not farmConfig.blip or not farmConfig.blip.enabled then goto continue end
-        
-        -- Get crop config for color and name
-        local cropConfig = Config.Crops[farmConfig.crop]
-        
-        -- Guard: Invalid crop
-        if not cropConfig then
-            print('^3[WheatFarm] WARNING: Invalid crop "' .. tostring(farmConfig.crop) .. '" for farm "' .. farmConfig.id .. '"^7')
-            goto continue
-        end
-        
-        -- Create blip
-        local blipName = cropConfig.name .. '-Feld'
-        local blip = createBlip(
-            farmConfig.location,
-            farmConfig.blip.sprite,
-            cropConfig.blipColor,
-            farmConfig.blip.scale,
-            blipName
-        )
-        
-        -- Store for cleanup
-        table.insert(createdBlips, {
-            id = 'farm_' .. farmConfig.id,
-            blip = blip
-        })
-        
-        DebugPrint('Created blip for farm: ' .. farmConfig.id)
-        
-        ::continue::
-    end
-end
-
--- =====================================================
--- MILL BLIP
--- =====================================================
-
-local function createMillBlip()
-    -- Guard: Mill disabled
-    if not Config.Mill or not Config.Mill.enabled then
-        DebugPrint('Mill disabled, skipping blip')
-        return
-    end
-    
-    -- Guard: Blip disabled
-    if not Config.Mill.blip or not Config.Mill.blip.enabled then
-        DebugPrint('Mill blip disabled')
-        return
-    end
-    
-    -- Create blip
-    local blip = createBlip(
-        Config.Mill.location,
-        Config.Mill.blip.sprite,
-        Config.Mill.blip.color,
-        Config.Mill.blip.scale,
-        Config.Mill.blip.name
-    )
-    
-    -- Store for cleanup
-    table.insert(createdBlips, {
-        id = 'mill',
-        blip = blip
-    })
-    
-    DebugPrint('Created blip for mill')
-end
-
--- =====================================================
--- BAKERY BLIP
--- =====================================================
-
-local function createBakeryBlip()
-    -- Guard: Bakery disabled
-    if not Config.Bakery or not Config.Bakery.enabled then
-        DebugPrint('Bakery disabled, skipping blip')
-        return
-    end
-    
-    -- Guard: Blip disabled
-    if not Config.Bakery.blip or not Config.Bakery.blip.enabled then
-        DebugPrint('Bakery blip disabled')
-        return
-    end
-    
-    -- Create blip
-    local blip = createBlip(
-        Config.Bakery.location,
-        Config.Bakery.blip.sprite,
-        Config.Bakery.blip.color,
-        Config.Bakery.blip.scale,
-        Config.Bakery.blip.name
-    )
-    
-    -- Store for cleanup
-    table.insert(createdBlips, {
-        id = 'bakery',
-        blip = blip
-    })
-    
-    DebugPrint('Created blip for bakery')
-end
-
--- =====================================================
--- PROCESSOR BLIP
--- =====================================================
-
-local function createProcessorBlip()
-    -- Guard: Processor disabled
-    if not Config.Processor or not Config.Processor.enabled then
-        DebugPrint('Processor disabled, skipping blip')
-        return
-    end
-    
-    -- Guard: Blip disabled
-    if not Config.Processor.blip or not Config.Processor.blip.enabled then
-        DebugPrint('Processor blip disabled')
-        return
-    end
-    
-    -- Create blip
-    local blip = createBlip(
-        Config.Processor.location,
-        Config.Processor.blip.sprite,
-        Config.Processor.blip.color,
-        Config.Processor.blip.scale,
-        Config.Processor.blip.name
-    )
-    
-    -- Store for cleanup
-    table.insert(createdBlips, {
-        id = 'processor',
-        blip = blip
-    })
-    
-    DebugPrint('Created blip for processor')
-end
-
--- =====================================================
--- RESTAURANT BLIP
--- =====================================================
-
-local function createRestaurantBlip()
-    -- Guard: Restaurant disabled
-    if not Config.Restaurant or not Config.Restaurant.enabled then
-        DebugPrint('Restaurant disabled, skipping blip')
-        return
-    end
-    
-    -- Guard: Blip disabled
-    if not Config.Restaurant.blip or not Config.Restaurant.blip.enabled then
-        DebugPrint('Restaurant blip disabled')
-        return
-    end
-    
-    -- Create blip
-    local blip = createBlip(
-        Config.Restaurant.location,
-        Config.Restaurant.blip.sprite,
-        Config.Restaurant.blip.color,
-        Config.Restaurant.blip.scale,
-        Config.Restaurant.blip.name
-    )
-    
-    -- Store for cleanup
-    table.insert(createdBlips, {
-        id = 'restaurant',
-        blip = blip
-    })
-    
-    DebugPrint('Created blip for restaurant')
-end
-
--- =====================================================
--- INITIALIZATION
+-- INITIALIZE ALL BLIPS
 -- =====================================================
 
 CreateThread(function()
-    -- Wait for framework to be ready
-    local attempts = 0
-    while not IsFrameworkReady() and attempts < 50 do
-        Wait(100)
-        attempts = attempts + 1
-    end
+    Wait(1000) -- Wait for config to load
     
-    if not IsFrameworkReady() then
-        print('^1[WheatFarm] Blips: Framework not ready!^7')
-        return
-    end
-    
-    Wait(1000) -- Extra safety for game load
-    
-    -- Create all blips
-    createFarmBlips()
-    createMillBlip()
-    createProcessorBlip()
-    createBakeryBlip()
-    createRestaurantBlip()
-    
-    print('[WheatFarm] ✅ Blips created: ' .. #createdBlips)
-end)
-
--- =====================================================
--- CLEANUP
--- =====================================================
-
-local function cleanupBlips()
-    for _, blipData in pairs(createdBlips) do
-        if blipData.blip and DoesBlipExist(blipData.blip) then
-            RemoveBlip(blipData.blip)
-            DebugPrint('Removed blip: ' .. blipData.id)
+    -- Farm Blips
+    if Config.Farms then
+        for i, farm in ipairs(Config.Farms) do
+            if farm.enabled and farm.blip then
+                local cropConfig = Config.Crops[farm.crop]
+                local blipName = cropConfig and cropConfig.name or "Farm"
+                
+                local blip = CreateLocationBlip(farm.blip, farm.location, blipName .. " Farm")
+                
+                if blip then
+                    table.insert(createdBlips, blip)
+                    DebugPrint('Created farm blip: ' .. farm.id)
+                end
+            end
         end
     end
     
-    createdBlips = {}
-    print('[WheatFarm] Blips cleaned up')
-end
-
--- Cleanup on resource stop
-AddEventHandler('wheat:cleanup', function()
-    cleanupBlips()
+    -- Mill Blip
+    if Config.Mill and Config.Mill.enabled and Config.Mill.blip then
+        local blip = CreateLocationBlip(Config.Mill.blip, Config.Mill.location, "Mühle")
+        
+        if blip then
+            table.insert(createdBlips, blip)
+            DebugPrint('Created mill blip')
+        end
+    end
+    
+    -- Processor Blip
+    if Config.Processor and Config.Processor.enabled and Config.Processor.blip then
+        local blip = CreateLocationBlip(Config.Processor.blip, Config.Processor.location, "Verarbeitung")
+        
+        if blip then
+            table.insert(createdBlips, blip)
+            DebugPrint('Created processor blip')
+        end
+    end
+    
+    -- Bakery Blip
+    if Config.Bakery and Config.Bakery.enabled and Config.Bakery.blip then
+        local blip = CreateLocationBlip(Config.Bakery.blip, Config.Bakery.location, "Bäckerei")
+        
+        if blip then
+            table.insert(createdBlips, blip)
+            DebugPrint('Created bakery blip')
+        end
+    end
+    
+    -- Restaurant Blip
+    if Config.Restaurant and Config.Restaurant.enabled and Config.Restaurant.blip then
+        local blip = CreateLocationBlip(Config.Restaurant.blip, Config.Restaurant.location, "Restaurant")
+        
+        if blip then
+            table.insert(createdBlips, blip)
+            DebugPrint('Created restaurant blip')
+        end
+    end
+    
+    print('^2[WheatFarm] Created ' .. #createdBlips .. ' blips^7')
 end)
+
+-- =====================================================
+-- CLEANUP ON RESOURCE STOP
+-- =====================================================
 
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
-    cleanupBlips()
-end)
-
--- =====================================================
--- EXPORTS (for external use)
--- =====================================================
-
-exports('GetCreatedBlips', function()
-    return createdBlips
-end)
-
-exports('RefreshBlips', function()
-    cleanupBlips()
-    Wait(100)
-    createFarmBlips()
-    createMillBlip()
-    createProcessorBlip()
-    createBakeryBlip()
-    createRestaurantBlip()
+    
+    -- Remove all created blips
+    for _, blip in ipairs(createdBlips) do
+        if DoesBlipExist(blip) then
+            RemoveBlip(blip)
+        end
+    end
+    
+    DebugPrint('Removed ' .. #createdBlips .. ' blips')
 end)

@@ -34,6 +34,14 @@ end)
 -- EVENT HANDLERS
 -- =====================================================
 
+-- Generic notification from server
+RegisterNetEvent('wheat:notify', function(message, type, duration)
+    -- Security: Check for invoking resource
+    if GetInvokingResource() then return end
+    
+    Notify(message, type, duration)
+end)
+
 -- Harvest Success Notification
 RegisterNetEvent('wheat:notifySuccess', function(amount, cropName)
     -- Security: Check for invoking resource

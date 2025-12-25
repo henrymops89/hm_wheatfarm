@@ -1,53 +1,47 @@
 -- =====================================================
--- CLIENT/MILL.LUA - Mill Interaction System
--- Single Responsibility: Handle mill PED & interaction
+-- CLIENT/MILL.LUA - Mill Processing System
+-- Handles wheat → flour conversion
 -- =====================================================
 
+local isProcessing = false
 local millPed = nil
-local millTarget = nil
+local inMillZone = false
 
 -- =====================================================
--- MILL PROCESSING FUNCTION
+-- MILL INTERACTION
 -- =====================================================
 
-local function processMill()
-    -- Check if player is near mill
-    local playerCoords = GetEntityCoords(PlayerPedId())
-    local distance = #(playerCoords - Config.Mill.location)
-    
-    if distance > Config.Mill.radius then
-        Notify('Du bist zu weit von der Mühle entfernt!', 'error')
+local function ProcessMill()
+    -- Guard: Already processing
+    if isProcessing then
+        Notify('Die Mühle verarbeitet bereits!', 'error')
         return
     end
     
-    -- Check if player has enough wheat
-    if not HasEnoughItems(Config.Mill.input.item, Config.Mill.input.amount) then
-        Notify(string.format('Du brauchst mindestens %dx Weizen!', Config.Mill.input.amount), 'error')
-        return
-    end
-    
-    -- Check if player can interact
+    -- Guard: Player state
     local canInteract, reason = CanPlayerInteract()
     if not canInteract then
-        if reason == 'in_vehicle' then
-            Notify('Du kannst nicht im Fahrzeug verarbeiten!', 'error')
+        if reason == 'player_dead' then
+            Notify('Du kannst nicht verarbeiten während du tot bist!', 'error')
+        elseif reason == 'in_vehicle' then
+            Notify('Du musst aus dem Fahrzeug aussteigen!', 'error')
         end
         return
     end
     
-    -- Get animation config
-    local animConfig = Config.Mill.animation
-    if not animConfig then
-        animConfig = {
-            dict = 'anim@heists@box_carry@',
-            clip = 'idle',
-        }
+    -- Check if player has enough wheat (client-side check)
+    local requiredAmount = Config.Mill.input.amount
+    if not HasEnoughItems(Config.Mill.input.item, requiredAmount) then
+        Notify('Du hast nicht genug ' .. Config.Mill.input.item .. '! Benötigt: ' .. requiredAmount, 'error')
+        return
     end
+    
+    isProcessing = true
     
     -- Show progress bar
     local success = ShowProgressBar({
         duration = Config.Mill.processingTime or 8000,
-        label = 'Weizen wird verarbeitet...',
+        label = 'Weizen wird gemahlen...',
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -55,15 +49,18 @@ local function processMill()
             move = true,
             combat = true,
         },
-        anim = {
-            dict = animConfig.dict,
-            clip = animConfig.clip,
+        anim = Config.Mill.animation and {
+            dict = Config.Mill.animation.dict,
+            clip = Config.Mill.animation.clip,
         },
-        prop = animConfig.prop
+        prop = Config.Mill.animation and Config.Mill.animation.prop,
     })
     
+    isProcessing = false
+    
+    -- Process result
     if success then
-        -- Trigger server event
+        -- Trigger server to process
         TriggerServerEvent('wheat:mill:process')
     else
         Notify('Verarbeitung abgebrochen!', 'error')
@@ -74,230 +71,135 @@ end
 -- SPAWN MILL PED
 -- =====================================================
 
-local function spawnMillPed()
-    if not Config.Mill.ped or not Config.Mill.ped.enabled then
-        print('[WheatFarm] Mill PED disabled')
-        return
-    end
+CreateThread(function()
+    Wait(2000)
     
-    print('[WheatFarm] Spawning mill PED...')
+    if not Config.Mill or not Config.Mill.enabled then return end
     
-    millPed = SpawnPed(Config.Mill.ped)
-    
-    if millPed then
-        print('[WheatFarm] ✅ Mill PED spawned: ' .. tostring(millPed))
-    else
-        print('^1[WheatFarm] Failed to spawn mill PED!^7')
-    end
-end
-
--- =====================================================
--- SETUP OX_TARGET
--- =====================================================
-
-local function setupOxTarget()
-    if GetResourceState('ox_target') ~= 'started' then
-        print('^3[WheatFarm] ox_target not found!^7')
-        return false
-    end
-    
-    print('[WheatFarm] Setting up ox_target for mill...')
-    
-    local targetConfig = Config.Mill.target
-    
-    if millPed then
-        -- Target on PED
-        exports.ox_target:addLocalEntity(millPed, {
-            {
-                name = 'wheat_mill_process',
-                icon = targetConfig.icon or 'fa-solid fa-wheat-awn',
-                label = targetConfig.label or 'Weizen verarbeiten',
-                distance = targetConfig.distance or 3.0,
-                onSelect = function()
-                    processMill()
-                end
-            }
-        })
+    if Config.Mill.ped and Config.Mill.ped.enabled then
+        millPed = SpawnPed(Config.Mill.ped)
         
-        print('[WheatFarm] ✅ ox_target added to mill PED')
-    else
-        -- Target on location (sphere)
-        millTarget = exports.ox_target:addSphereZone({
-            coords = Config.Mill.location,
-            radius = targetConfig.distance or 3.0,
-            options = {
-                {
-                    name = 'wheat_mill_process',
-                    icon = targetConfig.icon or 'fa-solid fa-wheat-awn',
-                    label = targetConfig.label or 'Weizen verarbeiten',
-                    onSelect = function()
-                        processMill()
-                    end
-                }
-            }
-        })
-        
-        print('[WheatFarm] ✅ ox_target zone created for mill')
-    end
-    
-    return true
-end
-
--- =====================================================
--- SETUP QB-TARGET
--- =====================================================
-
-local function setupQBTarget()
-    if GetResourceState('qb-target') ~= 'started' then
-        print('^3[WheatFarm] qb-target not found!^7')
-        return false
-    end
-    
-    print('[WheatFarm] Setting up qb-target for mill...')
-    
-    local targetConfig = Config.Mill.target
-    
-    if millPed then
-        -- Target on PED
-        exports['qb-target']:AddTargetEntity(millPed, {
-            options = {
-                {
-                    icon = targetConfig.icon or 'fa-solid fa-wheat-awn',
-                    label = targetConfig.label or 'Weizen verarbeiten',
-                    action = function()
-                        processMill()
-                    end
-                }
-            },
-            distance = targetConfig.distance or 3.0
-        })
-        
-        print('[WheatFarm] ✅ qb-target added to mill PED')
-    else
-        -- Target on location
-        exports['qb-target']:AddBoxZone('wheat_mill', Config.Mill.location, 2.0, 2.0, {
-            name = 'wheat_mill',
-            heading = 0,
-            debugPoly = false,
-            minZ = Config.Mill.location.z - 1.0,
-            maxZ = Config.Mill.location.z + 2.0,
-        }, {
-            options = {
-                {
-                    icon = targetConfig.icon or 'fa-solid fa-wheat-awn',
-                    label = targetConfig.label or 'Weizen verarbeiten',
-                    action = function()
-                        processMill()
-                    end
-                }
-            },
-            distance = targetConfig.distance or 3.0
-        })
-        
-        print('[WheatFarm] ✅ qb-target zone created for mill')
-    end
-    
-    return true
-end
-
--- =====================================================
--- SETUP 3D TEXT INTERACTION
--- =====================================================
-
-local function setup3DText()
-    print('[WheatFarm] Setting up 3D text for mill...')
-    
-    CreateThread(function()
-        while true do
-            local sleep = 1000
-            local playerCoords = GetEntityCoords(PlayerPedId())
-            local distance = #(playerCoords - Config.Mill.location)
+        if millPed then
+            DebugPrint('Mill ped spawned successfully')
             
-            if distance < (Config.Mill.text3d.distance or 5.0) then
-                sleep = 0
-                
-                -- Draw 3D text
-                Draw3DText(
-                    Config.Mill.location,
-                    Config.Mill.text3d.text or '[E] Weizen verarbeiten',
-                    Config.Mill.text3d.scale or 0.35
-                )
-                
-                -- Check for E key press
-                if distance < Config.Mill.radius and IsControlJustPressed(0, 38) then -- E key
-                    processMill()
+            -- Add target interaction if using target system
+            if Config.Mill.interactionType == 'auto' or Config.Mill.interactionType == 'ox_target' then
+                if GetResourceState('ox_target') == 'started' then
+                    exports.ox_target:addLocalEntity(millPed, {
+                        {
+                            name = 'wheat_mill',
+                            icon = Config.Mill.target.icon or 'fa-solid fa-wheat-awn',
+                            label = Config.Mill.target.label or 'Weizen verarbeiten',
+                            distance = Config.Mill.target.distance or 3.0,
+                            onSelect = function()
+                                ProcessMill()
+                            end
+                        }
+                    })
+                end
+            elseif Config.Mill.interactionType == 'qb-target' then
+                if GetResourceState('qb-target') == 'started' then
+                    exports['qb-target']:AddTargetEntity(millPed, {
+                        options = {
+                            {
+                                icon = Config.Mill.target.icon or 'fa-solid fa-wheat-awn',
+                                label = Config.Mill.target.label or 'Weizen verarbeiten',
+                                action = function()
+                                    ProcessMill()
+                                end
+                            }
+                        },
+                        distance = Config.Mill.target.distance or 3.0
+                    })
                 end
             end
-            
-            Wait(sleep)
+        else
+            print('^1[WheatFarm] ERROR: Failed to spawn mill ped!^7')
         end
-    end)
-    
-    print('[WheatFarm] ✅ 3D text thread started for mill')
-end
-
--- =====================================================
--- INITIALIZE MILL
--- =====================================================
-
-local function initializeMill()
-    -- Guard: Mill disabled
-    if not Config.Mill or not Config.Mill.enabled then
-        print('[WheatFarm] Mill is disabled in config')
-        return
     end
-    
-    print('[WheatFarm] 🏭 Initializing mill system...')
-    
-    -- Spawn PED
-    spawnMillPed()
-    
-    Wait(500) -- Wait for PED to spawn
-    
-    -- Setup interaction based on type
-    local interactionType = Config.Mill.interactionType or "ox_target"
-    
-    if interactionType == "ox_target" then
-        if not setupOxTarget() then
-            print('^3[WheatFarm] ox_target failed, falling back to 3D text^7')
-            setup3DText()
-        end
-    elseif interactionType == "qb-target" then
-        if not setupQBTarget() then
-            print('^3[WheatFarm] qb-target failed, falling back to 3D text^7')
-            setup3DText()
-        end
-    elseif interactionType == "3dtext" then
-        setup3DText()
-    else
-        print('^3[WheatFarm] Unknown interaction type: ' .. tostring(interactionType) .. ', using 3D text^7')
-        setup3DText()
-    end
-    
-    print('[WheatFarm] ✅ Mill initialized!')
-end
+end)
 
 -- =====================================================
--- START INITIALIZATION
+-- ZONE MANAGEMENT (for 3D text / marker)
 -- =====================================================
 
 CreateThread(function()
-    -- Wait for framework
-    local attempts = 0
-    while not IsFrameworkReady() and attempts < 50 do
-        Wait(100)
-        attempts = attempts + 1
+    Wait(2000)
+    
+    if not Config.Mill or not Config.Mill.enabled then return end
+    
+    -- Create zone
+    local point = lib.points.new({
+        coords = Config.Mill.location,
+        distance = Config.Mill.radius or 10.0,
+    })
+    
+    function point:onEnter()
+        inMillZone = true
+        
+        -- Show TextUI if using 3D text
+        if Config.Mill.interactionType == '3dtext' then
+            lib.showTextUI('[E] Weizen verarbeiten', {
+                position = 'left-center',
+                icon = 'wheat-awn',
+            })
+        end
     end
     
-    if not IsFrameworkReady() then
-        print('^1[WheatFarm] Mill: Framework not ready!^7')
-        return
+    function point:onExit()
+        inMillZone = false
+        
+        if Config.Mill.interactionType == '3dtext' then
+            lib.hideTextUI()
+        end
     end
     
-    Wait(1500) -- Extra wait for resources
+    function point:nearby()
+        -- Draw 3D text if enabled
+        if Config.Mill.interactionType == '3dtext' and Config.Mill.text3d then
+            if millPed and DoesEntityExist(millPed) then
+                local pedCoords = GetEntityCoords(millPed)
+                local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
+                
+                Draw3DText(
+                    textCoords,
+                    Config.Mill.text3d.text or '[E] Weizen verarbeiten',
+                    Config.Mill.text3d.scale or 0.35
+                )
+            end
+        end
+    end
     
-    initializeMill()
+    DebugPrint('Mill zone created')
 end)
+
+-- =====================================================
+-- KEY BINDING (for 3D text interaction)
+-- =====================================================
+
+if Config.Mill and Config.Mill.interactionType == '3dtext' then
+    CreateThread(function()
+        Wait(2000)
+        
+        RegisterCommand('+millProcess', function()
+            if inMillZone and not isProcessing then
+                -- Check distance to ped
+                if millPed and DoesEntityExist(millPed) then
+                    local pedCoords = GetEntityCoords(millPed)
+                    local distance = GetDistanceToLocation(pedCoords)
+                    
+                    if distance <= (Config.Mill.text3d.distance or 5.0) then
+                        ProcessMill()
+                    end
+                end
+            end
+        end, false)
+        
+        RegisterCommand('-millProcess', function() end, false)
+        
+        RegisterKeyMapping('+millProcess', 'Mühle: Verarbeiten', 'keyboard', 'E')
+    end)
+end
 
 -- =====================================================
 -- CLEANUP
@@ -306,19 +208,22 @@ end)
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
     
-    -- Delete PED
+    -- Delete ped
     if millPed and DoesEntityExist(millPed) then
         DeleteEntity(millPed)
     end
     
-    -- Remove targets
-    if millTarget and Config.Mill.interactionType == "ox_target" then
-        exports.ox_target:removeZone(millTarget)
+    -- Hide TextUI
+    if inMillZone then
+        lib.hideTextUI()
     end
+end)
+
+AddEventHandler('wheat:cleanup', function()
+    isProcessing = false
+    inMillZone = false
     
-    if Config.Mill.interactionType == "qb-target" then
-        exports['qb-target']:RemoveZone('wheat_mill')
+    if inMillZone then
+        lib.hideTextUI()
     end
-    
-    print('[WheatFarm] Mill cleaned up')
 end)
