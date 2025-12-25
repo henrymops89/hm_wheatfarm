@@ -260,7 +260,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history.
 ## 🔗 Links
 
 - **GitHub**: https://github.com/henrymops89/hm_wheatfarm
-- **Discord**: [Join our support server](#)
+- **Discord**: https://dsc.gg/mopsscripts
 - **Documentation**: [Full docs](bridge/README.md)
 
 ---
