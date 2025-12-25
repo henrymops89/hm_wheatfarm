@@ -183,7 +183,8 @@ CreateThread(function()
     end
     
     function point:nearby()
-        if Config.Bakery.interactionType == '3dtext' and Config.Bakery.text3d then
+        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
+        if Config.Bakery.interactionType == '3dtext' and Config.Bakery.text3d and Config.Bakery.text3d.show3DText ~= false then
             if bakeryPed and DoesEntityExist(bakeryPed) then
                 local pedCoords = GetEntityCoords(bakeryPed)
                 local textCoords = vector3(pedCoords.x, pedCoords.y, pedCoords.z + 2.0)
