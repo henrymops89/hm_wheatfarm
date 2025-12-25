@@ -26,8 +26,13 @@ RegisterNetEvent('wheat:mill:process', function()
     local outputItem = Config.Mill.output.item
     local outputAmount = Config.Mill.output.amount
     
-    -- Validate player has enough input items
-    if not ValidateItemAmount(source, inputItem, inputAmount, 'mill process') then
+    -- ✅ NEU: Server-seitige Item-Validierung!
+    local hasEnough = GetItemCount(source, inputItem)
+    
+    DebugPrint(string.format('Mill: Player %d has %d x %s (needs %d)', source, hasEnough, inputItem, inputAmount))
+    
+    if hasEnough < inputAmount then
+        TriggerClientEvent('wheat:notify', source, Lang:t('not_enough_wheat', inputItem, inputAmount), 'error')
         return
     end
     
@@ -35,7 +40,7 @@ RegisterNetEvent('wheat:mill:process', function()
     local removed = RemoveItem(source, inputItem, inputAmount)
     
     if not removed then
-        NotifyPlayer(source, 'Fehler beim Entfernen der Items!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Fehler beim Entfernen der Items!', 'error')
         return
     end
     
@@ -45,7 +50,7 @@ RegisterNetEvent('wheat:mill:process', function()
     if not added then
         -- Refund input items if output failed
         AddItem(source, inputItem, inputAmount)
-        NotifyPlayer(source, 'Dein Inventar ist voll!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Dein Inventar ist voll!', 'error')
         return
     end
     

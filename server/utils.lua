@@ -307,7 +307,6 @@ function GetItemCount(source, item)
     if not source or source <= 0 then return 0 end
     if not item then return 0 end
     
-    -- Direct inventory system calls (server-side)
     local inventoryName = GetInventoryName()
     
     if inventoryName == 'ox_inventory' then
@@ -317,10 +316,36 @@ function GetItemCount(source, item)
         return (success and count) or 0
         
     elseif inventoryName == 'tgiann-inventory' then
+        -- ✅ Method 2 funktioniert perfekt!
         local success, count = pcall(function()
-            return exports['tgiann-inventory']:GetItemsTotalAmount(source, item)
+            return exports['tgiann-inventory']:GetItemCount(source, item)
         end)
-        return (success and count) or 0
+        
+        if success and count and tonumber(count) then
+            return tonumber(count)
+        end
+        
+        -- Fallback: Framework-basiert (falls GetItemCount fehlschlägt)
+        local frameworkName = GetFrameworkName()
+        
+        if frameworkName == 'qbcore' then
+            local Player = Framework.object.Functions.GetPlayer(source)
+            if Player then
+                local itemData = Player.Functions.GetItemByName(item)
+                return itemData and itemData.amount or 0
+            end
+        elseif frameworkName == 'qbox' then
+            local success, result = pcall(function()
+                return exports.qbx_core:GetPlayer(source)
+            end)
+            
+            if success and result then
+                local itemData = result.Functions.GetItemByName(item)
+                return itemData and itemData.amount or 0
+            end
+        end
+        
+        return 0
         
     elseif inventoryName == 'qs-inventory' then
         local success, count = pcall(function()
@@ -329,7 +354,6 @@ function GetItemCount(source, item)
         return (success and count) or 0
         
     elseif inventoryName == 'qb-inventory' then
-        -- QBCore/QBox method
         local frameworkName = GetFrameworkName()
         
         if frameworkName == 'qbcore' then
@@ -352,12 +376,6 @@ function GetItemCount(source, item)
     end
     
     return 0
-end
-
-function HasItem(source, item, amount)
-    amount = amount or 1
-    local count = GetItemCount(source, item)
-    return count >= amount
 end
 
 -- =====================================================
@@ -529,3 +547,23 @@ function DebugTable(tbl, indent)
         end
     end
 end
+
+-- =====================================================
+-- EXPORTS (damit andere Files die Funktionen nutzen können)
+-- =====================================================
+
+exports('AddMoney', AddMoney)
+exports('RemoveMoney', RemoveMoney)
+exports('GetMoney', GetMoney)
+exports('AddItem', AddItem)
+exports('RemoveItem', RemoveItem)
+exports('GetItemCount', GetItemCount)
+exports('HasItem', HasItem)
+exports('DamageToolDurability', DamageToolDurability)
+exports('NotifyPlayer', NotifyPlayer)
+exports('IsPlayerNearLocation', IsPlayerNearLocation)
+exports('LogAction', LogAction)
+exports('CalculateDynamicPrice', CalculateDynamicPrice)
+exports('GetPlayerIdentifierByType', GetPlayerIdentifierByType)
+exports('DebugPrint', DebugPrint)
+exports('DebugTable', DebugTable)

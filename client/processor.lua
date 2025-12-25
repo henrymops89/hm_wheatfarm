@@ -29,12 +29,8 @@ local function ProcessPotatoes()
         return
     end
     
-    -- Check if player has enough potatoes
-    local requiredAmount = Config.Processor.input.amount
-    if not HasEnoughItems(Config.Processor.input.item, requiredAmount) then
-        Notify(Lang:t('not_enough_potatoes', Config.Processor.input.item, requiredAmount), 'error')
-        return
-    end
+    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
+    -- ✅ Server validiert alles!
     
     isProcessing = true
     

@@ -37,14 +37,8 @@ local function StartHarvesting(farm)
         return
     end
     
-    -- Tool check
-    if cropConfig.requiredTool then
-        if not HasRequiredTool(cropConfig.requiredTool) then
-            local toolConfig = Config.Tools[cropConfig.requiredTool]
-            Notify(Lang:t('need_tool', toolConfig and toolConfig.label or cropConfig.requiredTool), 'error')
-            return
-        end
-    end
+    -- ❌ ENTFERNT: Client-seitige Tool-Prüfung
+    -- ✅ Server macht jetzt die komplette Validierung!
     
     isHarvesting = true
     
@@ -79,7 +73,7 @@ local function StartHarvesting(farm)
     
     -- Process result
     if success then
-        -- Trigger server-side harvest
+        -- Trigger server-side harvest (server validates everything!)
         TriggerServerEvent('wheat:harvest', farm.id, farm.crop)
     else
         Notify('Ernte abgebrochen!', 'error')
@@ -149,14 +143,8 @@ local function StartAutoFarm(farm)
     -- Guard: Invalid crop
     if not cropConfig then return end
     
-    -- Tool check (REQUIRED for auto-farm!)
-    if cropConfig.requiredTool then
-        if not HasRequiredTool(cropConfig.requiredTool) then
-            local toolConfig = Config.Tools[cropConfig.requiredTool]
-            Notify(Lang:t('need_tool', toolConfig and toolConfig.label or cropConfig.requiredTool), 'error')
-            return
-        end
-    end
+    -- ❌ ENTFERNT: Client-seitige Tool-Prüfung
+    -- ✅ Server prüft das Tool bei jedem Auto-Farm Durchgang!
     
     -- Start auto-farm loop
     autoFarmLoopRunning = true
@@ -176,14 +164,8 @@ local function StartAutoFarm(farm)
                 break
             end
             
-            -- Check if still has tool
-            if cropConfig.requiredTool then
-                if not HasRequiredTool(cropConfig.requiredTool) then
-                    Notify('Auto-Farm gestoppt: Kein Werkzeug mehr!', 'error')
-                    StopAutoFarm()
-                    break
-                end
-            end
+            -- ❌ ENTFERNT: Client-seitige Tool-Prüfung
+            -- ✅ Server prüft das Tool!
             
             -- Check player state
             local canInteract = CanPlayerInteract()
@@ -227,7 +209,7 @@ local function StartAutoFarm(farm)
             autoFarmActive = false
             
             if success then
-                -- Trigger auto-farm on server
+                -- Trigger auto-farm on server (server validates tool!)
                 TriggerServerEvent('wheat:autoFarm', farm.id, farm.crop)
                 
                 -- Cooldown before next farm
@@ -370,7 +352,7 @@ end)
 AddEventHandler('wheat:cleanup', function()
     isHarvesting = false
     autoFarmActive = false
-    autoFarmLoopRunning = false  -- ✅ Stop auto-farm loop
+    autoFarmLoopRunning = false
     currentFarm = nil
     inFarmZone = false
     

@@ -1,8 +1,3 @@
--- =====================================================
--- SERVER/BAKERY.LUA - Flour Selling (Server)
--- Handles selling flour and payment
--- =====================================================
-
 RegisterNetEvent('wheat:bakery:sell', function(amount)
     local source = source
     
@@ -25,12 +20,17 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     amount = SanitizeNumber(amount, 1, Config.Bakery.maxSellAmount or 100, 0)
     
     if amount <= 0 then
-        NotifyPlayer(source, 'Ungültige Menge!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Ungültige Menge!', 'error')
         return
     end
     
-    -- Validate player has enough flour
-    if not ValidateItemAmount(source, Config.Bakery.item, amount, 'bakery sell') then
+    -- ✅ NEU: Server-seitige Item-Validierung!
+    local hasEnough = GetItemCount(source, Config.Bakery.item)
+    
+    DebugPrint(string.format('Bakery: Player %d has %d x %s (wants to sell %d)', source, hasEnough, Config.Bakery.item, amount))
+    
+    if hasEnough < amount then
+        TriggerClientEvent('wheat:notify', source, 'Du hast nicht genug ' .. Config.Bakery.item .. '!', 'error')
         return
     end
     
@@ -43,7 +43,7 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     local removed = RemoveItem(source, Config.Bakery.item, amount)
     
     if not removed then
-        NotifyPlayer(source, 'Fehler beim Entfernen der Items!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Fehler beim Entfernen der Items!', 'error')
         return
     end
     
@@ -53,7 +53,7 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
     if not moneyAdded then
         -- Refund flour if payment failed
         AddItem(source, Config.Bakery.item, amount)
-        NotifyPlayer(source, 'Fehler bei der Zahlung!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Fehler bei der Zahlung!', 'error')
         return
     end
     
@@ -78,5 +78,5 @@ RegisterNetEvent('wheat:bakery:sell', function(amount)
             totalPrice, amount, Config.Bakery.item, pricePerItem)
     end
     
-    NotifyPlayer(source, message, 'success')
+    TriggerClientEvent('wheat:notify', source, message, 'success')
 end)

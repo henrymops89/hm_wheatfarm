@@ -1,6 +1,5 @@
 -- =====================================================
--- SERVER/RESTAURANT.LUA - Fries Selling (Server)
--- Handles selling fries and payment
+-- SERVER/RESTAURANT.LUA - 
 -- =====================================================
 
 RegisterNetEvent('wheat:restaurant:sell', function(amount)
@@ -25,12 +24,17 @@ RegisterNetEvent('wheat:restaurant:sell', function(amount)
     amount = SanitizeNumber(amount, 1, Config.Restaurant.maxSellAmount or 100, 0)
     
     if amount <= 0 then
-        NotifyPlayer(source, 'Ungültige Menge!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Ungültige Menge!', 'error')
         return
     end
     
-    -- Validate player has enough fries
-    if not ValidateItemAmount(source, Config.Restaurant.item, amount, 'restaurant sell') then
+    -- ✅ NEU: Server-seitige Item-Validierung!
+    local hasEnough = GetItemCount(source, Config.Restaurant.item)
+    
+    DebugPrint(string.format('Restaurant: Player %d has %d x %s (wants to sell %d)', source, hasEnough, Config.Restaurant.item, amount))
+    
+    if hasEnough < amount then
+        TriggerClientEvent('wheat:notify', source, 'Du hast nicht genug ' .. Config.Restaurant.item .. '!', 'error')
         return
     end
     
@@ -47,7 +51,7 @@ RegisterNetEvent('wheat:restaurant:sell', function(amount)
     local removed = RemoveItem(source, Config.Restaurant.item, amount)
     
     if not removed then
-        NotifyPlayer(source, 'Fehler beim Entfernen der Items!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Fehler beim Entfernen der Items!', 'error')
         return
     end
     
@@ -57,7 +61,7 @@ RegisterNetEvent('wheat:restaurant:sell', function(amount)
     if not moneyAdded then
         -- Refund fries if payment failed
         AddItem(source, Config.Restaurant.item, amount)
-        NotifyPlayer(source, 'Fehler bei der Zahlung!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Fehler bei der Zahlung!', 'error')
         return
     end
     
@@ -82,5 +86,5 @@ RegisterNetEvent('wheat:restaurant:sell', function(amount)
             totalPrice, amount, Config.Restaurant.item, pricePerItem)
     end
     
-    NotifyPlayer(source, message, 'success')
+    TriggerClientEvent('wheat:notify', source, message, 'success')
 end)

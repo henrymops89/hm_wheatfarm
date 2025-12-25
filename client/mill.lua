@@ -29,12 +29,8 @@ local function ProcessMill()
         return
     end
     
-    -- Check if player has enough wheat (client-side check)
-    local requiredAmount = Config.Mill.input.amount
-    if not HasEnoughItems(Config.Mill.input.item, requiredAmount) then
-        Notify(Lang:t('not_enough_wheat', Config.Mill.input.item, requiredAmount), 'error')
-        return
-    end
+    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
+    -- ✅ Server validiert alles!
     
     isProcessing = true
     
@@ -60,7 +56,7 @@ local function ProcessMill()
     
     -- Process result
     if success then
-        -- Trigger server to process
+        -- Trigger server to process (server validates everything!)
         TriggerServerEvent('wheat:mill:process')
     else
         Notify('Verarbeitung abgebrochen!', 'error')

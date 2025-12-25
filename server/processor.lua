@@ -1,8 +1,3 @@
--- =====================================================
--- SERVER/PROCESSOR.LUA - Potato Processing (Server)
--- Handles potato → fries conversion
--- =====================================================
-
 RegisterNetEvent('wheat:processor:process', function()
     local source = source
     
@@ -39,9 +34,14 @@ RegisterNetEvent('wheat:processor:process', function()
     
     DebugPrint(string.format('PROCESSOR: Input=%dx%s, Output=%dx%s', inputAmount, inputItem, outputAmount, outputItem))
     
-    -- Validate player has enough input items
-    if not ValidateItemAmount(source, inputItem, inputAmount, 'processor process') then
-        DebugPrint('❌ PROCESSOR: ValidateItemAmount failed')
+    -- ✅ NEU: Server-seitige Item-Validierung!
+    local hasEnough = GetItemCount(source, inputItem)
+    
+    DebugPrint(string.format('Processor: Player %d has %d x %s (needs %d)', source, hasEnough, inputItem, inputAmount))
+    
+    if hasEnough < inputAmount then
+        TriggerClientEvent('wheat:notify', source, Lang:t('not_enough_potatoes', inputItem, inputAmount), 'error')
+        DebugPrint('❌ PROCESSOR: Not enough items')
         return
     end
     
@@ -52,7 +52,7 @@ RegisterNetEvent('wheat:processor:process', function()
     
     if not removed then
         DebugPrint('❌ PROCESSOR: RemoveItem failed')
-        NotifyPlayer(source, 'Fehler beim Entfernen der Items!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Fehler beim Entfernen der Items!', 'error')
         return
     end
     
@@ -65,7 +65,7 @@ RegisterNetEvent('wheat:processor:process', function()
         DebugPrint('❌ PROCESSOR: AddItem failed - refunding')
         -- Refund input items if output failed
         AddItem(source, inputItem, inputAmount)
-        NotifyPlayer(source, 'Dein Inventar ist voll!', 'error')
+        TriggerClientEvent('wheat:notify', source, 'Dein Inventar ist voll!', 'error')
         return
     end
     
@@ -81,7 +81,7 @@ RegisterNetEvent('wheat:processor:process', function()
     ))
     
     -- Notify success
-    NotifyPlayer(source, Lang:t('produced_items', outputAmount, outputItem), 'success')
+    TriggerClientEvent('wheat:notify', source, Lang:t('produced_items', outputAmount, outputItem), 'success')
     
     DebugPrint('🎉 PROCESSOR: Complete!')
 end)

@@ -29,23 +29,18 @@ local function SellFries()
         return
     end
     
-    -- Check if player has fries
-    local friesCount = GetItemCount(Config.Restaurant.item)
-    
-    if friesCount <= 0 then
-        Notify('Du hast keine ' .. Config.Restaurant.item .. ' zum Verkaufen!', 'error')
-        return
-    end
+    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
+    -- ✅ Server prüft ob Spieler Pommes hat!
     
     -- Ask how much to sell
     local input = lib.inputDialog('Pommes verkaufen', {
         {
             type = 'number',
             label = 'Menge',
-            description = 'Du hast: ' .. friesCount .. 'x | Preis: $' .. Config.Restaurant.pricePerItem .. ' pro Einheit',
+            description = 'Preis: $' .. Config.Restaurant.pricePerItem .. ' pro Einheit',
             required = true,
             min = 1,
-            max = math.min(friesCount, Config.Restaurant.maxSellAmount or 100)
+            max = Config.Restaurant.maxSellAmount or 100
         }
     })
     
@@ -60,11 +55,6 @@ local function SellFries()
     -- Validate amount
     if not amount or amount <= 0 then
         Notify('Ungültige Menge!', 'error')
-        return
-    end
-    
-    if amount > friesCount then
-        Notify('Du hast nicht genug ' .. Config.Restaurant.item .. '!', 'error')
         return
     end
     
@@ -91,6 +81,7 @@ local function SellFries()
     
     -- Process result
     if success then
+        -- Server validiert ob genug Pommes vorhanden sind!
         TriggerServerEvent('wheat:restaurant:sell', amount)
     else
         Notify('Verkauf abgebrochen!', 'error')
@@ -183,7 +174,6 @@ CreateThread(function()
     end
     
     function point:nearby()
-        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
         if Config.Restaurant.interactionType == '3dtext' and Config.Restaurant.text3d and Config.Restaurant.text3d.show3DText ~= false then
             if restaurantPed and DoesEntityExist(restaurantPed) then
                 local pedCoords = GetEntityCoords(restaurantPed)

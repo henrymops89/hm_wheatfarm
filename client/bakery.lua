@@ -29,23 +29,18 @@ local function SellFlour()
         return
     end
     
-    -- Check if player has flour
-    local flourCount = GetItemCount(Config.Bakery.item)
-    
-    if flourCount <= 0 then
-        Notify(Lang:t('no_flour_to_sell', Config.Bakery.item), 'error')
-        return
-    end
+    -- ❌ ENTFERNT: Client-seitige Item-Prüfung
+    -- ✅ Server prüft ob Spieler Mehl hat!
     
     -- Ask how much to sell
     local input = lib.inputDialog(Lang:t('sell_flour_title'), {
         {
             type = 'number',
             label = 'Menge',
-            description = Lang:t('sell_flour_description', flourCount, Config.Bakery.pricePerItem),
+            description = 'Preis: $' .. Config.Bakery.pricePerItem .. ' pro Einheit',
             required = true,
             min = 1,
-            max = math.min(flourCount, Config.Bakery.maxSellAmount or 100)
+            max = Config.Bakery.maxSellAmount or 100
         }
     })
     
@@ -60,11 +55,6 @@ local function SellFlour()
     -- Validate amount
     if not amount or amount <= 0 then
         Notify('Ungültige Menge!', 'error')
-        return
-    end
-    
-    if amount > flourCount then
-        Notify(Lang:t('not_enough_flour', Config.Bakery.item), 'error')
         return
     end
     
@@ -91,6 +81,7 @@ local function SellFlour()
     
     -- Process result
     if success then
+        -- Server validiert ob genug Mehl vorhanden ist!
         TriggerServerEvent('wheat:bakery:sell', amount)
     else
         Notify('Verkauf abgebrochen!', 'error')
@@ -183,7 +174,6 @@ CreateThread(function()
     end
     
     function point:nearby()
-        -- ✅ GEÄNDERT: Nur 3D-Text zeigen wenn explizit gewünscht
         if Config.Bakery.interactionType == '3dtext' and Config.Bakery.text3d and Config.Bakery.text3d.show3DText ~= false then
             if bakeryPed and DoesEntityExist(bakeryPed) then
                 local pedCoords = GetEntityCoords(bakeryPed)
