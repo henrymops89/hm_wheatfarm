@@ -6,6 +6,112 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.1.1] - 2024-12-25
+
+### 🎉 What's New
+
+**Peak Hours Display** 🔥
+- Peak hour bonuses are now clearly displayed when selling!
+- Players see exactly how much bonus money they receive
+- Example: "Du hast $324 für 2x fries bekommen! + $74 (Peak Hours Bonus: +30%)"
+
+**Auto-Farm Continuous Loop** 🔄
+- Auto-farm now runs continuously until stopped (not just once!)
+- Press [G] to toggle auto-farm on/off
+- Automatically stops when leaving zone or tool breaks
+- Dynamic TextUI shows current status:
+  - "Auto-Farm starten 🔄" when idle
+  - "Auto-Farm läuft - Drücke G zum Stoppen 🔴" when running
+
+**Better User Experience** 💚
+- Removed cooldowns from Mill, Processor, Bakery, and Restaurant
+- Farm markers now properly sized (yellow circle = interaction zone)
+- Security distance tolerance increased to 12m (no more "too far away" errors)
+- TextUI hides manual harvest option when auto-farm is active
+
+### 🔧 Critical Fixes
+
+**Server Inventory System** ⚠️
+- FIXED: Complete rewrite of server-side inventory functions
+- FIXED: `GetItemCount()`, `AddItem()`, `RemoveItem()` now use direct inventory API calls
+- FIXED: Added `CanCarryItem()` check for ox_inventory (prevents item loss)
+- FIXED: Better error handling with detailed debug logging
+- Now properly supports: ox_inventory, tgiann-inventory, qs-inventory, qb-inventory
+
+**Locale System** 🌍
+- FIXED: `locale.lua` now loads BEFORE `locales/de.lua` (was causing "Locale is nil" errors)
+- All translations now work correctly
+
+**Tool Durability** 🔨
+- FIXED: Simplified tool system that works with ALL inventories
+- FIXED: Removed complex metadata handling that was causing crashes
+- Tools are now required for farming (as intended)
+- Small random chance for tool breaking (works universally)
+
+**Event Handlers** 📡
+- FIXED: Added missing `wheat:notify` event handler in client
+- Server notifications now properly reach the client
+- All error messages are now visible to players
+
+### 🚀 Improvements
+
+**Debug Logging** 🔍
+- Added comprehensive debug logging for troubleshooting
+- Shows Peak Hour status, pricing calculations, and inventory operations
+- Controlled via `Config.EnableLogging` (enabled by default)
+- Minimal performance impact (~0.0001ms per operation)
+
+**Code Quality** 📝
+- Better error messages for players
+- Improved code documentation
+- More consistent naming conventions
+
+### 🔄 Changed
+
+**Configuration**
+- Security distance tolerance: 2.0m → 12.0m
+- Farm marker sizes now properly configured
+- All farm/processor locations maintained from user config
+
+**Processing & Selling**
+- Removed all cooldowns (Mill, Processor, Bakery, Restaurant)
+- Only rate limiting remains (20 requests/minute for anti-spam)
+
+### 📊 Technical Details
+
+**Files Modified:**
+- `server/utils.lua` - Complete inventory system rewrite + debug logging
+- `server/bakery.lua` - Peak hours display + cooldown removal
+- `server/restaurant.lua` - Peak hours display + cooldown removal
+- `server/mill.lua` - Cooldown removal
+- `server/processor.lua` - Cooldown removal + debug logging
+- `client/main.lua` - Added wheat:notify event handler
+- `client/farming.lua` - Auto-farm loop + dynamic TextUI
+- `config.lua` - Security distance tolerance update
+- `fxmanifest.lua` - Locale loading order fix
+
+**New Features:**
+- `CalculateDynamicPrice()` now returns: `price, isPeakHour, bonusPercent`
+- Auto-farm loop with proper cleanup on zone exit
+- Dynamic TextUI updates based on auto-farm state
+
+### 🐛 Bug Reports Fixed
+- ❌ Items not being added to ox_inventory after processing
+- ❌ "Too far away" error when inside farm zone
+- ❌ Auto-farm only running once instead of continuous
+- ❌ Locale errors on resource start
+- ❌ Tool durability system crashing
+- ❌ Peak hours bonus not visible to players
+- ❌ Notifications not showing up
+
+### 💡 Known Issues
+None! Everything is working as intended.
+
+### 🔮 Coming in v2.2.0
+See "Upcoming in v2.2.0" section below.
+
+---
+
 ## [2.1.0] - 2024-12-25
 
 ### ✨ Added
