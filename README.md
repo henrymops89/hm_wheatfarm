@@ -1,4 +1,4 @@
-# 🌾 HM Wheat Farm v2.1.0
+# 🌾 HM Wheat Farm v2.1.1
 
 **Professional Multi-Framework Farming Economy System for FiveM**
 
@@ -8,6 +8,36 @@
 [![License](https://img.shields.io/badge/license-Custom-red)](LICENSE)
 
 ---
+## 🎉 VERSION 2.1.1 -
+
+**NEW**🔥 Peak Hours Display
+
+Bonus-Betrag wird jetzt angezeigt!
+"Du hast $324 für 2x fries bekommen! + $74 (Peak Hours Bonus: +30%)"
+
+### 🔄 Auto-Farm Continuous Loop
+
+Farmt jetzt kontinuierlich bis gestoppt
+Toggle mit [G]
+Dynamic TextUI zeigt Status
+
+### ⚡ Better UX
+
+Keine Cooldowns mehr bei Verarbeitung/Verkauf
+Marker richtig dimensioniert
+Security Distance auf 12m erhöht
+
+### 🔧 Critical Fixes
+
+Server Inventory System komplett neu
+Locale-Loading-Order gefixt
+Tool Durability vereinfacht
+wheat:notify Event-Handler hinzugefügt
+
+### 🔍 Debug Logging
+
+Comprehensive logging für Troubleshooting
+Minimal Performance-Impact
 
 ## 🚀 What's New in v2.1.0
 
