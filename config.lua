@@ -9,11 +9,31 @@ Config = {}
 -- GENERAL SETTINGS
 -- =====================================================
 
-Config.Language = "en"        -- de, en
+Config.Language = "de"        -- de, en
 Config.Framework = "auto"  -- "auto", "qbox", "qbcore", "esx"
 Config.Inventory = "auto"  -- "auto", "ox_inventory", "qb-inventory"
 Config.TargetSystem = "ox_target"  -- "auto", "ox_target", "qb-target", "3dtext"
-Config.EnableLogging = true   -- Debug logs in console
+Config.EnableLogging = false   -- Debug logs in console
+
+
+-- =====================================================
+-- UI LABELS (for buttons, keys, etc.)
+-- =====================================================
+Config.UILabels = {
+    -- Key display in TextUI/3D Text
+    keys = {
+        harvest = '[E]',
+        autoFarm = '[G]',
+        process = '[E]',
+        sell = '[E]',
+    },
+    
+    -- Dialog buttons (ox_lib uses client locale automatically, but we can override)
+    dialogs = {
+        confirm = 'Bestätigen',    -- Falls du es überschreiben willst
+        cancel = 'Abbrechen',      -- Falls du es überschreiben willst
+    }
+}
 
 -- =====================================================
 -- ANIMATIONS
