@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'henrymops89'
 description 'HM Wheat Farm - Multi-Framework Economic System with Modular Bridge'
-version '2.1.1'
+version '2.2.1'
 
 -- =====================================================
 -- SHARED SCRIPTS
