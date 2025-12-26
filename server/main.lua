@@ -27,7 +27,7 @@ CreateThread(function()
     print('[WheatFarm] Framework: ' .. GetFrameworkName())
     print('[WheatFarm] Inventory: ' .. GetInventoryName())
     print('[WheatFarm] Security: ' .. (Config.Security.enabled and 'Enabled' or 'Disabled'))
-    print('[WheatFarm] Version: 2.1.0')
+    print('[WheatFarm] Version: 2.2.1')
     print('[WheatFarm] =====================================')
 end)
 
@@ -52,7 +52,7 @@ RegisterNetEvent('wheat:requestInfo', function()
     TriggerClientEvent('wheat:systemInfo', source, {
         framework = GetFrameworkName(),
         inventory = GetInventoryName(),
-        version = '2.1.0',
+        version = '2.2.1',
     })
 end)
 
@@ -63,7 +63,7 @@ end)
 CreateThread(function()
     Wait(5000) -- Wait for server to start
     
-    local currentVersion = '2.1.0'
+    local currentVersion = '2.2.1'
     
     print('^2[WheatFarm] Running version: ' .. currentVersion .. '^7')
     print('^2[WheatFarm] Thanks for using HM Wheat Farm!^7')
