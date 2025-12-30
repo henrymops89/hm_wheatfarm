@@ -11,21 +11,36 @@
 ## 📝 CHANGELOG v2.2.2
 Added
 ✅ sv_config.lua (Server-Only Config)
+
 ✅ Discord Logging System (9 Events)
+
 ✅ Admin ACE Permission System
+
 ✅ Blacklist System
+
 ✅ Enhanced Anti-Cheat Settings
+
 ✅ Economy Multipliers (server-side)
+
 ✅ Database Settings (preparation)
+
 ✅ API Keys Storage (preparation)
 Changed
+
 ✅ config.lua (reference to sv_config.lua)
+
 ✅ fxmanifest.lua (sv_config.lua added)
+
 ✅ Version 2.2.1 → 2.2.2
+
 Security
+
 ✅ Sensitive data now server-only
+
 ✅ Best practices followed
+
 ✅ No sensitive data in shared_scripts
+
 ✅ Prepared for production
 
 ---
