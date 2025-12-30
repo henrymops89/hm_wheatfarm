@@ -1,6 +1,9 @@
 -- =====================================================
--- CONFIG.LUA - Wheat Economy System (FIXED VERSION)
+-- CONFIG.LUA - Wheat Economy System v2.2.2
 -- Farm → Mill → Bakery Chain
+-- ⚠️ WICHTIG: Sensitive Daten gehören in sv_config.lua (server_scripts)!
+-- ⚠️ Discord Webhooks, API Keys, Passwords → sv_config.lua
+-- ⚠️ Public Settings bleiben hier in config.lua (shared_scripts)
 -- =====================================================
 
 Config = {}
@@ -11,7 +14,7 @@ Config = {}
 
 Config.Language = "de"        -- de, en
 Config.Framework = "auto"  -- "auto", "qbox", "qbcore", "esx"
-Config.Inventory = "auto"  -- "auto", "ox_inventory", "qb-inventory"
+Config.Inventory = "auto"  -- "auto", "ox_inventory", "qb-inventory", "tgiann-inventory", "qs-inventory"
 Config.TargetSystem = "ox_target"  -- "auto", "ox_target", "qb-target", "3dtext"
 Config.EnableLogging = false   -- Debug logs in console
 
@@ -453,3 +456,24 @@ Config.Security = {
     kickOnDistanceExploit = false,
     logSuspiciousActivity = true,
 }
+
+-- ═══════════════════════════════════════════════════════════════
+-- NOTES
+-- ═══════════════════════════════════════════════════════════════
+
+--[[
+    ⚠️ WICHTIG - SENSITIVE DATEN:
+    
+    Discord Webhooks, API Keys, Passwords gehören in sv_config.lua!
+    
+    sv_config.lua ist server_scripts = NUR Server kann lesen
+    config.lua ist shared_scripts = Client + Server können lesen
+    
+    Beispiel (FALSCH):
+    Config.DiscordWebhook = 'https://...'  ← Client kann sehen!
+    
+    Beispiel (RICHTIG):
+    SvConfig.Discord.Webhook = 'https://...'  ← Nur Server!
+    
+    Siehe: CONFIG_REFERENCE.md für mehr Info
+]]
