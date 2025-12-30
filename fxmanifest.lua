@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'henrymops89'
 description 'HM Wheat Farm - Multi-Framework Economic System with Modular Bridge'
-version '2.2.1'
+version '2.2.2'
 
 -- =====================================================
 -- SHARED SCRIPTS
@@ -12,7 +12,7 @@ version '2.2.1'
 
 shared_scripts {
     '@ox_lib/init.lua',
-    'config.lua',
+    'config.lua',                -- ✅ Public Settings (Shared)
     
     -- ✅ NEW: Modular Bridge System
     'bridge/framework.lua',
@@ -26,7 +26,23 @@ shared_scripts {
     'locales/fr.lua',
     'locales/es.lua',
     'locales/pl.lua',
-   'locales/tr.lua',
+    'locales/tr.lua',
+}
+
+-- =====================================================
+-- SERVER SCRIPTS
+-- =====================================================
+
+server_scripts {
+    'sv_config.lua',         -- ✅ Server-Only Config (FIRST!)
+    'server/utils.lua',
+    'server/security.lua',
+    'server/main.lua',
+    'server/farming.lua',
+    'server/mill.lua',
+    'server/processor.lua',
+    'server/bakery.lua',
+    'server/restaurant.lua'
 }
 
 -- =====================================================
@@ -42,21 +58,6 @@ client_scripts {
     'client/processor.lua',
     'client/bakery.lua',
     'client/restaurant.lua'
-}
-
--- =====================================================
--- SERVER SCRIPTS
--- =====================================================
-
-server_scripts {
-    'server/utils.lua',
-    'server/security.lua',
-    'server/main.lua',
-    'server/farming.lua',
-    'server/mill.lua',
-    'server/processor.lua',
-    'server/bakery.lua',
-    'server/restaurant.lua'
 }
 
 -- =====================================================
