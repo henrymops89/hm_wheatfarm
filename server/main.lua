@@ -27,7 +27,7 @@ CreateThread(function()
     print('[WheatFarm] Framework: ' .. GetFrameworkName())
     print('[WheatFarm] Inventory: ' .. GetInventoryName())
     print('[WheatFarm] Security: ' .. (Config.Security.enabled and 'Enabled' or 'Disabled'))
-    print('[WheatFarm] Version: 2.2.1')
+    print('[WheatFarm] Version: 2.2.2')
     print('[WheatFarm] =====================================')
 end)
 
