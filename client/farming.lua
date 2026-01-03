@@ -87,8 +87,13 @@ local autoFarmLoopRunning = false
 -- Update TextUI based on auto-farm state
 local function UpdateAutoFarmTextUI()
     if not inFarmZone or not currentFarm then return end
-    if not Config.FarmDefaults.textUI or not Config.FarmDefaults.textUI.enabled then return end
+    --if not Config.FarmDefaults.textUI or not Config.FarmDefaults.textUI.enabled then return end
     
+    if Config.FarmDefaults.textUI and Config.FarmDefaults.textUI.enabled and cropConfig and cropConfig.name then
+    lib.showTextUI(string.format('[E] %s ernten | [G] Auto-Farm', cropConfig.name), {
+        position = Config.FarmDefaults.textUI.position or 'left-center',
+        icon = Config.FarmDefaults.textUI.icon or 'wheat-awn',
+                
     local cropConfig = Config.Crops[currentFarm.crop]
     if not cropConfig then return end
     
