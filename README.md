@@ -7,6 +7,9 @@
 [![Version](https://img.shields.io/badge/version-2.1.0-brightgreen)](https://github.com/henrymops89/hm_wheatfarm/releases)
 [![License](https://img.shields.io/badge/license-Custom-red)](LICENSE)
 
+##  📝 CHANGELOG v2.2.3
+Fixed Client/farming.lua Error
+- Thank you SerPablo0
 ---
 ## 📝 CHANGELOG v2.2.2
 Added
