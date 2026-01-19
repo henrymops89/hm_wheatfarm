@@ -87,22 +87,22 @@ local autoFarmLoopRunning = false
 -- Update TextUI based on auto-farm state
 local function UpdateAutoFarmTextUI()
     if not inFarmZone or not currentFarm then return end
-    --if not Config.FarmDefaults.textUI or not Config.FarmDefaults.textUI.enabled then return end
     
-    if Config.FarmDefaults.textUI and Config.FarmDefaults.textUI.enabled and cropConfig and cropConfig.name then
-    lib.showTextUI(string.format('[E] %s ernten | [G] Auto-Farm', cropConfig.name), {
-        position = Config.FarmDefaults.textUI.position or 'left-center',
-        icon = Config.FarmDefaults.textUI.icon or 'wheat-awn',
-                
+    -- Check if TextUI is enabled
+    if not Config.FarmDefaults.textUI or not Config.FarmDefaults.textUI.enabled then return end
+
     local cropConfig = Config.Crops[currentFarm.crop]
     if not cropConfig then return end
     
     -- Get localized crop name
     local cropName = Lang:t('crop_' .. currentFarm.crop)
     
-    -- Get key labels from config
-    local harvestKey = Config.Keybinds.harvest.key
-    local autoFarmKey = Config.Keybinds.autoFarm.key
+    -- Get key labels from config (Strip brackets if present as Lang adds them)
+    local harvestLabel = Config.UILabels and Config.UILabels.keys and Config.UILabels.keys.harvest or 'E'
+    local autoFarmLabel = Config.UILabels and Config.UILabels.keys and Config.UILabels.keys.autoFarm or 'G'
+    
+    local harvestKey = harvestLabel:gsub('%[', ''):gsub('%]', '')
+    local autoFarmKey = autoFarmLabel:gsub('%[', ''):gsub('%]', '')
     
     local text
     if autoFarmLoopRunning then
