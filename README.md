@@ -1,4 +1,4 @@
-# 🌾 HM Wheat Farm v2.2.1
+# 🌾 HM Wheat Farm v2.2.3
 
 **Professional Multi-Framework Farming Economy System for FiveM**
 
